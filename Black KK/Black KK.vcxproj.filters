@@ -27,6 +27,9 @@
     <ClInclude Include="BulletPhy.h">
       <Filter>head</Filter>
     </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>head</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="physis.cpp">
@@ -42,6 +45,9 @@
       <Filter>yuan</Filter>
     </ClCompile>
     <ClCompile Include="BulletPhy.cpp">
+      <Filter>yuan</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
       <Filter>yuan</Filter>
     </ClCompile>
   </ItemGroup>
