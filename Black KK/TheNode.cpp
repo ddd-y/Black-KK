@@ -182,7 +182,7 @@ void AddToOpenSet(std::shared_ptr<TheNode>& current, std::priority_queue<std::sh
 		}
 	}
 }
-std::vector<std::shared_ptr<TheNode>> JPSRoad(std::shared_ptr<TheNode> current, std::shared_ptr<TheNode> Goal, const std::vector<std::vector<int>>& TheGrid) 
+std::shared_ptr<std::vector<std::shared_ptr<TheNode>>> JPSRoad(std::shared_ptr<TheNode> current, std::shared_ptr<TheNode> Goal, const std::vector<std::vector<int>>& TheGrid) 
 {
 	current = std::make_shared<TheNode>(current->x, current->y, Goal, nullptr);
 	std::map<std::shared_ptr<TheNode>, double, CompareSharedPtr> TheClosedSet;
@@ -201,13 +201,13 @@ std::vector<std::shared_ptr<TheNode>> JPSRoad(std::shared_ptr<TheNode> current, 
 		TheClosedSet[TheCurrent] = TheCurrent->Thef;
 		if (IsTheGoal(TheCurrent, Goal))
 		{
-			std::vector<std::shared_ptr<TheNode>> ThePath;
+			auto ThePath=std::make_shared<std::vector<std::shared_ptr<TheNode>>>();
 			while (TheCurrent != nullptr)
 			{
-				ThePath.push_back(TheCurrent);
+				ThePath->push_back(TheCurrent);
 				TheCurrent = TheCurrent->TheLast;
 			}
-			std::reverse(ThePath.begin(), ThePath.end());
+			std::reverse(ThePath->begin(), ThePath->end());
 			return ThePath;
 		}
 		for (int i = 0; i<4; i++)
@@ -222,6 +222,6 @@ std::vector<std::shared_ptr<TheNode>> JPSRoad(std::shared_ptr<TheNode> current, 
 			}
 		}
 	}
-	return {};
+	return std::make_shared<std::vector<std::shared_ptr<TheNode>>>();
 }
 

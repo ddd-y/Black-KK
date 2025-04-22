@@ -47,5 +47,5 @@ private:
 		return xDiff+yDiff;
 	}
 };
-std::vector<std::shared_ptr<TheNode>> JPSRoad(std::shared_ptr<TheNode> current, std::shared_ptr<TheNode> Goal, const std::vector<std::vector<int>>& TheGrid);
+std::shared_ptr<std::vector<std::shared_ptr<TheNode>>> JPSRoad(std::shared_ptr<TheNode> current, std::shared_ptr<TheNode> Goal, const std::vector<std::vector<int>>& TheGrid);
 
