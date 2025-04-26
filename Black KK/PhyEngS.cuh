@@ -1,13 +1,11 @@
-#pragma once
 #include"physis.h"
 #include"BulletPhy.h"
 #include"Terr.h"
 #include"ScreenDraw.h"
 #include<vector>
 #include<memory>
-class PhyEng
+class PhyEngS
 {
-	std::shared_ptr<ScreenDraw> TheScreenDraw;
 	std::vector<std::shared_ptr<BulletPhy>> BossBullet;
 	std::vector<std::shared_ptr<BulletPhy>> PlayerBullet;
 	std::vector<int> speedx;//子弹速度x
@@ -26,8 +24,8 @@ class PhyEng
 	int* D_speedy;//设备端的子弹速度y
 	int* D_NowX;//设备端的子弹坐标x
 	int* D_NowY;//设备端的子弹坐标y
-	int* D_IfBossBulletValid;//设备端的子弹是否有效
-	int* D_IfPlayerBulletValid;//设备端的玩家子弹是否有效
+	bool* D_IfBossBulletValid;//设备端的子弹是否有效
+	bool* D_IfPlayerBulletValid;//设备端的玩家子弹是否有效
 	int* D_speedxPlayer;//设备端的玩家子弹速度x
 	int* D_speedyPlayer;//设备端的玩家子弹速度y
 	int* D_NowXPlayer;//设备端的玩家子弹坐标x
@@ -37,16 +35,21 @@ class PhyEng
 	int maxBossIndex;
 	int maxPlayerIndex;
 public:
-	PhyEng(std::shared_ptr<Terr> TheTerr);
-	~PhyEng();
-	PhyEng() = delete;
+	PhyEngS(std::shared_ptr<Terr> TheTerr);
+	std::shared_ptr<ScreenDraw> TheScreenDraw;
+	~PhyEngS();
+	PhyEngS() = delete;
+	bool GetIfBossBulletValid(int index)
+	{
+		return IfBossBulletValid[index];
+	}
 	void spawnBossBullet(int x, int y, int Thespeedx, int Thespeedy)
 	{
 		BossBullet[currentBossIndex] = std::make_shared<BulletPhy>(currentBossIndex);
-		speedx[currentBossIndex]=Thespeedx;
-		speedy[currentBossIndex]=Thespeedy;
-		NowX[currentBossIndex]=x;
-		NowY[currentBossIndex]=y;
+		speedx[currentBossIndex] = Thespeedx;
+		speedy[currentBossIndex] = Thespeedy;
+		NowX[currentBossIndex] = x;
+		NowY[currentBossIndex] = y;
 		IfBossBulletValid[currentBossIndex] = true;
 		++currentBossIndex;
 		if (currentBossIndex >= maxBossIndex)
@@ -66,4 +69,3 @@ public:
 	}
 	void UpDateBullet();
 };
-

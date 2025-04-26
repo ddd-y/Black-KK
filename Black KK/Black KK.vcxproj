@@ -80,21 +80,33 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="PhyEngS.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AINode.h" />
     <ClInclude Include="Boss.h" />
     <ClInclude Include="BulletPhy.h" />
+    <ClInclude Include="FirstSession.h" />
+    <ClInclude Include="PhyEngS.cuh" />
     <ClInclude Include="PhyEng.h" />
     <ClInclude Include="physis.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="ScreenDraw.h" />
+    <ClInclude Include="SecondSession.h" />
+    <ClInclude Include="Terr.h" />
     <ClInclude Include="TheNode.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AINode.cpp" />
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="BulletPhy.cpp" />
+    <ClCompile Include="FirstSession.cpp" />
     <ClCompile Include="PhyEng.cpp" />
     <ClCompile Include="physis.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="ScreenDraw.cpp" />
+    <ClCompile Include="SecondSession.cpp" />
+    <ClCompile Include="Terr.cpp" />
     <ClCompile Include="TheNode.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

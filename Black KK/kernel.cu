@@ -1,7 +1,9 @@
 ﻿
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-
+#include<iostream>
+#include <vector>
+#include<chrono>
 #include <stdio.h>
 
 cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
@@ -11,7 +13,19 @@ __global__ void addKernel(int *c, const int *a, const int *b)
     int i = threadIdx.x;
     c[i] = a[i] + b[i];
 }
+__global__ void add2DArrays(const float* A, const float* B, float* C, int width, int height) {
+    // 计算当前线程的二维索引
+    int x = blockIdx.x * blockDim.x + threadIdx.x; // 列索引
+    int y = blockIdx.y * blockDim.y + threadIdx.y; // 行索引
 
+    // 计算一维索引
+    int idx = y * width + x;
+
+    // 检查索引是否在数组范围内
+    if (x < width && y < height) {
+        C[idx] = A[idx] + B[idx];
+    }
+}
 // Helper function for using CUDA to add vectors in parallel.
 cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size)
 {

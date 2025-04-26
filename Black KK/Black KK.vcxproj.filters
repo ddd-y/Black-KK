@@ -2,53 +2,101 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="PhyEngS.cu">
+      <Filter>source\physisy</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="head">
       <UniqueIdentifier>{12d156aa-982e-4936-871e-cd1d542fda52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="yuan">
+    <Filter Include="head\AINode">
+      <UniqueIdentifier>{ed9285ca-0f43-48b7-8464-dad60f6b9dcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
       <UniqueIdentifier>{e35e700b-f5ee-4ec1-b13c-c534e7ad9be2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\AINodeY">
+      <UniqueIdentifier>{c7ecc091-fe33-4817-a259-f4cde6b4cea1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="head\physis">
+      <UniqueIdentifier>{4b89249c-0ad4-49b0-82af-f1f085280e61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\physisy">
+      <UniqueIdentifier>{e8b557d5-272d-40d2-91bd-adb7bda00f15}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="physis.h">
-      <Filter>head</Filter>
-    </ClInclude>
-    <ClInclude Include="PhyEng.h">
-      <Filter>head</Filter>
-    </ClInclude>
     <ClInclude Include="Boss.h">
       <Filter>head</Filter>
     </ClInclude>
     <ClInclude Include="TheNode.h">
       <Filter>head</Filter>
     </ClInclude>
-    <ClInclude Include="BulletPhy.h">
-      <Filter>head</Filter>
-    </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>head</Filter>
     </ClInclude>
+    <ClInclude Include="Terr.h">
+      <Filter>head</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenDraw.h">
+      <Filter>head</Filter>
+    </ClInclude>
+    <ClInclude Include="AINode.h">
+      <Filter>head\AINode</Filter>
+    </ClInclude>
+    <ClInclude Include="physis.h">
+      <Filter>head\physis</Filter>
+    </ClInclude>
+    <ClInclude Include="BulletPhy.h">
+      <Filter>head\physis</Filter>
+    </ClInclude>
+    <ClInclude Include="FirstSession.h">
+      <Filter>head\AINode</Filter>
+    </ClInclude>
+    <ClInclude Include="SecondSession.h">
+      <Filter>head\AINode</Filter>
+    </ClInclude>
+    <ClInclude Include="PhyEng.h">
+      <Filter>head\physis</Filter>
+    </ClInclude>
+    <ClInclude Include="PhyEngS.cuh">
+      <Filter>head\physis</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="physis.cpp">
-      <Filter>yuan</Filter>
-    </ClCompile>
-    <ClCompile Include="PhyEng.cpp">
-      <Filter>yuan</Filter>
-    </ClCompile>
     <ClCompile Include="Boss.cpp">
-      <Filter>yuan</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="TheNode.cpp">
-      <Filter>yuan</Filter>
-    </ClCompile>
-    <ClCompile Include="BulletPhy.cpp">
-      <Filter>yuan</Filter>
+      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="Player.cpp">
-      <Filter>yuan</Filter>
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="Terr.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenDraw.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="AINode.cpp">
+      <Filter>source\AINodeY</Filter>
+    </ClCompile>
+    <ClCompile Include="BulletPhy.cpp">
+      <Filter>source\physisy</Filter>
+    </ClCompile>
+    <ClCompile Include="physis.cpp">
+      <Filter>source\physisy</Filter>
+    </ClCompile>
+    <ClCompile Include="FirstSession.cpp">
+      <Filter>source\AINodeY</Filter>
+    </ClCompile>
+    <ClCompile Include="SecondSession.cpp">
+      <Filter>source\AINodeY</Filter>
+    </ClCompile>
+    <ClCompile Include="PhyEng.cpp">
+      <Filter>source\physisy</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

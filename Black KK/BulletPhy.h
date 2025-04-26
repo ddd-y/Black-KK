@@ -3,5 +3,9 @@
 class BulletPhy :
     public physis
 {
+public:
+	BulletPhy(int TheId) :physis(TheId)
+	{
+	}
 };
 
