@@ -2,27 +2,27 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include<chrono>
-__global__ void UpdateBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, bool* IfBossBulletValid, int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex)
+__global__ void UpdateBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, int* IfBossBulletValid, int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx < currentIndex)
 	{
-		if (IfBossBulletValid[idx]==true)
+		if (IfBossBulletValid[idx]==1)
 		{
 			NowX[idx] += speedx[idx];
 			NowY[idx] += speedy[idx];
 			if (NowX[idx] < 0 || NowX[idx] >= TheWidth || NowY[idx] < 0 || NowY[idx] >= TheHeight)
 			{
-				IfBossBulletValid[idx] = false;
+				IfBossBulletValid[idx] = 0;
 			}
 			if (D_TheGrid[NowY[idx] * TheWidth + NowX[idx]] == 1)
 			{
-				IfBossBulletValid[idx] = false;
+				IfBossBulletValid[idx] = 0;
 			}
 		}
 	}
 }
-__global__ void UpdatePlayerBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, bool* IfPlayerBulletValid, int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex)
+__global__ void UpdatePlayerBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, int* IfPlayerBulletValid, int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx < currentIndex)
@@ -51,11 +51,11 @@ PhyEngS::PhyEngS(std::shared_ptr<Terr> TheNewTerr) :TheTerr(TheNewTerr), maxBoss
 	IfPlayerBulletValid.resize(maxPlayerIndex);
 	for (int i = 0; i < maxBossIndex; ++i)
 	{
-		IfBossBulletValid[i] = false;
+		IfBossBulletValid[i] = 0;
 	}
 	for (int i = 0; i < maxPlayerIndex; ++i)
 	{
-		IfPlayerBulletValid[i] = false;
+		IfPlayerBulletValid[i] = 0;
 	}
 	int Width = TheTerr->GetWidth();
 	int Height = TheTerr->GetHeight();
@@ -73,12 +73,12 @@ PhyEngS::PhyEngS(std::shared_ptr<Terr> TheNewTerr) :TheTerr(TheNewTerr), maxBoss
 	cudaMalloc((void**)&D_speedy, maxBossIndex * sizeof(int));
 	cudaMalloc((void**)&D_NowX, maxBossIndex * sizeof(int));
 	cudaMalloc((void**)&D_NowY, maxBossIndex * sizeof(int));
-	cudaMalloc((void**)&D_IfBossBulletValid, maxBossIndex * sizeof(bool));
+	cudaMalloc((void**)&D_IfBossBulletValid, maxBossIndex * sizeof(int));
 	cudaMalloc((void**)&D_speedxPlayer, maxPlayerIndex * sizeof(int));
 	cudaMalloc((void**)&D_speedyPlayer, maxPlayerIndex * sizeof(int));
 	cudaMalloc((void**)&D_NowXPlayer, maxPlayerIndex * sizeof(int));
 	cudaMalloc((void**)&D_NowYPlayer, maxPlayerIndex * sizeof(int));
-	cudaMalloc((void**)&D_IfPlayerBulletValid, maxPlayerIndex * sizeof(bool));
+	cudaMalloc((void**)&D_IfPlayerBulletValid, maxPlayerIndex * sizeof(int));
 	delete[] TheGrid;
 }
 PhyEngS::~PhyEngS()
@@ -99,18 +99,8 @@ void PhyEngS::UpDateBullet()
 {
 	for (int i = 0; i < maxBossIndex; ++i)
 	{
-		if (IfBossBulletValid[i])
+		if (IfBossBulletValid[i]==1)
 			TheScreenDraw->Draw(NowX[i], NowY[i], ' ');
-	}
-	bool* H_IfPlayerBulletValid = new bool[maxPlayerIndex];
-	for (auto i : IfPlayerBulletValid)
-	{
-		H_IfPlayerBulletValid[i] = i;
-	}
-	bool* H_IfBossBulletValid = new bool[maxBossIndex];
-	for (auto i : IfBossBulletValid)
-	{
-		H_IfBossBulletValid[i] = i;
 	}
 	cudaStream_t stream1, stream2, stream3, stream4, stream5, stream6;
 	cudaStreamCreate(&stream1);
@@ -123,8 +113,8 @@ void PhyEngS::UpDateBullet()
 	cudaMemcpyAsync(D_NowXPlayer, NowXPlayer.data(), maxPlayerIndex * sizeof(int), cudaMemcpyHostToDevice, stream2);
 	cudaMemcpyAsync(D_NowY, NowY.data(), maxBossIndex * sizeof(int), cudaMemcpyHostToDevice, stream1);
 	cudaMemcpyAsync(D_NowYPlayer, NowYPlayer.data(), maxPlayerIndex * sizeof(int), cudaMemcpyHostToDevice, stream2);
-	cudaMemcpyAsync(D_IfBossBulletValid, H_IfBossBulletValid, maxBossIndex * sizeof(bool), cudaMemcpyHostToDevice, stream1);
-	cudaMemcpyAsync(D_IfPlayerBulletValid, H_IfPlayerBulletValid, maxPlayerIndex * sizeof(bool), cudaMemcpyHostToDevice, stream2);
+	cudaMemcpyAsync(D_IfBossBulletValid, IfBossBulletValid.data(), maxBossIndex * sizeof(int), cudaMemcpyHostToDevice, stream1);
+	cudaMemcpyAsync(D_IfPlayerBulletValid, IfPlayerBulletValid.data(), maxPlayerIndex * sizeof(int), cudaMemcpyHostToDevice, stream2);
 	cudaStreamSynchronize(stream1);
 	cudaStreamSynchronize(stream2);
 	cudaStreamDestroy(stream1);
@@ -149,25 +139,15 @@ void PhyEngS::UpDateBullet()
 	cudaMemcpyAsync(NowXPlayer.data(), D_NowXPlayer, maxPlayerIndex * sizeof(int), cudaMemcpyDeviceToHost, stream6);
 	cudaMemcpyAsync(NowY.data(), D_NowY, maxBossIndex * sizeof(int), cudaMemcpyDeviceToHost, stream5);
 	cudaMemcpyAsync(NowYPlayer.data(), D_NowYPlayer, maxPlayerIndex * sizeof(int), cudaMemcpyDeviceToHost, stream6);
-	cudaMemcpyAsync(H_IfBossBulletValid, D_IfBossBulletValid, maxBossIndex * sizeof(bool), cudaMemcpyDeviceToHost, stream5);
-	cudaMemcpyAsync(H_IfPlayerBulletValid, D_IfPlayerBulletValid, maxPlayerIndex * sizeof(bool), cudaMemcpyDeviceToHost, stream6);
+	cudaMemcpyAsync(IfBossBulletValid.data(), D_IfBossBulletValid, maxBossIndex * sizeof(bool), cudaMemcpyDeviceToHost, stream5);
+	cudaMemcpyAsync(IfPlayerBulletValid.data(), D_IfPlayerBulletValid, maxPlayerIndex * sizeof(bool), cudaMemcpyDeviceToHost, stream6);
 	cudaStreamSynchronize(stream5);
 	cudaStreamSynchronize(stream6);
 	cudaStreamDestroy(stream5);
 	cudaStreamDestroy(stream6);
 	for (int i = 0; i < maxBossIndex; ++i)
 	{
-		IfBossBulletValid[i] = H_IfBossBulletValid[i];
-	}
-	for (int i = 0; i < maxPlayerIndex; ++i)
-	{
-		IfPlayerBulletValid[i] = H_IfPlayerBulletValid[i];
-	}
-	delete[] H_IfBossBulletValid;
-	delete[] H_IfPlayerBulletValid;
-	for (int i = 0; i < maxBossIndex; ++i)
-	{
-		if (IfBossBulletValid[i])
+		if (IfBossBulletValid[i]==1)
 			TheScreenDraw->Draw(NowX[i], NowY[i], 'B');
 	}
 	TheScreenDraw->Display();
@@ -176,14 +156,12 @@ int main()
 {
 	std::shared_ptr<Terr> TheTerr = std::make_shared<Terr>();
 	std::shared_ptr<PhyEngS> ThePhyEng = std::make_shared<PhyEngS>(TheTerr);
-	ThePhyEng->spawnBossBullet(0, 16, 1, 1);
-	ThePhyEng->spawnBossBullet(18, 0, 1, 1);
 	ThePhyEng->spawnBossBullet(0, 0, 1, 1);
 	ThePhyEng->spawnBossBullet(24, 0, 1, 1);
 	ThePhyEng->spawnBossBullet(17, 0, 1, 1);
 	while (true)
 	{
 		ThePhyEng->UpDateBullet();
-		Sleep(100);
+		Sleep(20);
 	}
 }

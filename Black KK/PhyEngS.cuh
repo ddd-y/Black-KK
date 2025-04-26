@@ -16,16 +16,16 @@ class PhyEngS
 	std::vector<int> speedyPlayer;//玩家子弹速度y
 	std::vector<int> NowXPlayer;//玩家子弹坐标x
 	std::vector<int> NowYPlayer;//玩家子弹坐标y
-	std::vector<bool> IfBossBulletValid;//子弹是否有效
-	std::vector<bool> IfPlayerBulletValid;//玩家子弹是否有效
+	std::vector<int> IfBossBulletValid;//子弹是否有效
+	std::vector<int> IfPlayerBulletValid;//玩家子弹是否有效
 	std::shared_ptr<Terr> TheTerr;
 	int* D_TheGrid;//设备端的地图
 	int* D_speedx;//设备端的子弹速度x
 	int* D_speedy;//设备端的子弹速度y
 	int* D_NowX;//设备端的子弹坐标x
 	int* D_NowY;//设备端的子弹坐标y
-	bool* D_IfBossBulletValid;//设备端的子弹是否有效
-	bool* D_IfPlayerBulletValid;//设备端的玩家子弹是否有效
+	int* D_IfBossBulletValid;//设备端的子弹是否有效
+	int* D_IfPlayerBulletValid;//设备端的玩家子弹是否有效
 	int* D_speedxPlayer;//设备端的玩家子弹速度x
 	int* D_speedyPlayer;//设备端的玩家子弹速度y
 	int* D_NowXPlayer;//设备端的玩家子弹坐标x
@@ -50,7 +50,7 @@ public:
 		speedy[currentBossIndex] = Thespeedy;
 		NowX[currentBossIndex] = x;
 		NowY[currentBossIndex] = y;
-		IfBossBulletValid[currentBossIndex] = true;
+		IfBossBulletValid[currentBossIndex] = 1;
 		++currentBossIndex;
 		if (currentBossIndex >= maxBossIndex)
 		{
@@ -64,7 +64,7 @@ public:
 		speedy[currentPlayerIndex] = Thespeedy;
 		NowX[currentPlayerIndex] = x;
 		NowY[currentPlayerIndex] = y;
-		IfPlayerBulletValid[currentPlayerIndex] = true;
+		IfPlayerBulletValid[currentPlayerIndex] = 1;
 		++currentPlayerIndex;
 	}
 	void UpDateBullet();
