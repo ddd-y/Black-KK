@@ -1,82 +1,44 @@
 #include "Boss.h"
 #include "Player.h"
-inline bool ChuiZhi(std::shared_ptr<TheNode> a)
+void Boss::BossBeHitted()
 {
-	return (a->x != 0) != (a->y != 0);
+	int PlayerAtt = ThePlayer->GetAttack();
+	int Hurt = ( - PlayerAtt) / defense;
+	for (int i = 0, j = ThePhysis->GetBossBeHitterTime(); i < j; ++i)
+	{
+		ChangeHealth(Hurt);
+	}
 }
-bool Boss::IfDistance()//true表示要继续追击
+inline void Boss::ChangeHealth(int Change)
 {
-	int distance = abs(x - ThePlayer->GetX()) + abs(y - ThePlayer->GetY());
-	return distance > 8;
+	health += Change;
+	if (health >= maxhealth)
+		health = maxhealth;
+	if (health < 0)
+		health = 0;
+}
+bool Boss::IfDistance()//true表示在攻击范围内
+{
+	int distance = abs( GetMeX() - ThePlayer->GetX()) + abs(GetMeY() - ThePlayer->GetY());
+	return distance < 16;
 }
 void Boss::GetNextStep()
 {
-	auto Goal = std::make_shared<TheNode>(ThePlayer->GetX(), ThePlayer->GetY(), nullptr, nullptr);
-	auto current = std::make_shared<TheNode>(x, y, nullptr, nullptr);
+	auto Goal = std::make_shared<TheNode>(ThePlayer->GetX(),ThePlayer->GetY(), nullptr, nullptr);
+	auto current = std::make_shared<TheNode>(GetMeX(), GetMeY(), nullptr, nullptr);
 	auto ThePath = JPSRoad(current, Goal, *TheGrid);
-	if (ThePath->size() > 1)
+	int NewX1 = 0, NewY1 = 0;
+	if (ThePath->size() > 1) 
 	{
-		if (ChuiZhi((*ThePath)[0]))
-		{
-			NextStep[0][0] = (*ThePath)[0]->x;
-			NextStep[0][1] = (*ThePath)[0]->y;
-			if (ChuiZhi((*ThePath)[1]))
-			{
-				NextStep[1][0] = (*ThePath)[1]->x;
-				NextStep[1][1] = (*ThePath)[1]->y;
-			}
-			else
-			{
-				NextStep[1][0] = (*ThePath)[1]->x;
-				NextStep[1][1] = 0;
-			}
-		}
-		else
-		{
-			NextStep[0][0] = (*ThePath)[1]->x;
-			NextStep[0][1] = 0;
-			NextStep[1][0] = 0;
-			NextStep[1][1] = (*ThePath)[1]->y;
-		}
-		CanMoVeSlow = true;
+		NewX1 = (*ThePath)[1]->x;
+		NewY1 = (*ThePath)[1]->y;
 	}
-	else if (ThePath->size() == 1)
-	{
-		if (ChuiZhi((*ThePath)[0]))
-		{
-			NextStep[0][0] = (*ThePath)[0]->x;
-			NextStep[0][1] = (*ThePath)[0]->y;
-			NextStep[1][0] = 0;
-			NextStep[1][1] = 0;
-		}
-		else
-		{
-			NextStep[0][0] = 0;
-			NextStep[0][1] = (*ThePath)[0]->y;
-			NextStep[1][0] = (*ThePath)[0]->x;
-			NextStep[1][1] = 0;
-		}
-		CanMoVeSlow = true;
-	}
-	else
-	{
-		CanMoVeSlow = false;
-	}
-}
-void Boss::MoveSlow()
-{
-	if (currentmovechoice == 0)
-	{
-		currentmovechoice = 1;
-	}
-	else
-	{
-		currentmovechoice = 0;
-	}
-	int dx = NextStep[currentmovechoice][0];
-	int dy = NextStep[currentmovechoice][1];
-	if (!Move(dx, dy))
-		Flash();
+	int currentX = ThePhysis->GetBossX();
+	int currentY = ThePhysis->GetBossY();
+	bool valid = (currentX != NewX1)&&(currentY != NewY1);
+	if (valid)
+		NewY1 = currentY;
+	ThePhysis->ChangeLocation(NewX1, NewY1);
 }
 void Boss::Flash()
 {
@@ -98,12 +60,7 @@ void Boss::Flash()
 		}
 	}
 	ChangeLocation(goalX, goalY);
-	CanMoVeSlow = true;
 }
-Boss::Boss()
-{
-}
-
 Boss::~Boss()
 {
 }

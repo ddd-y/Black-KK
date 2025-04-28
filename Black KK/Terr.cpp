@@ -12,7 +12,7 @@ void Terr::GenerateSquareObstacles()
 	for (int i = 0; i < ObstacleCount; ++i) {
 		int x = std::rand() % TheWidth;
 		int y = std::rand() % TheHeight;
-		int size = std::rand() % 8 + 1; // 障碍物大小，范围从1到6
+		int size = std::rand() % 8 + 1; // 障碍物大小
 		for (int j = 0; j < size; ++j) {
 			for (int k = 0; k < size; ++k) {
 				if (x + j < TheWidth && y + k < TheHeight) {
