@@ -1,9 +1,17 @@
 #include "PhyEngS.cuh"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include "physis.h"
+#include"Boss.h"
+#include"Player.h"
+#include"AINode.h"
 #include<chrono>
-__global__ void UpdateBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, int* IfBossBulletValid, int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex)
+__global__ void UpdateBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, int* IfBossBulletValid, int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex,int PlayerX,int PlayerY,int*BossHitPlayer)
 {
+	__shared__ int ThePlayerX;
+	__shared__ int ThePlayerY;
+	ThePlayerX = PlayerX;
+	ThePlayerY = PlayerY;
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx < currentIndex)
 	{
@@ -11,6 +19,11 @@ __global__ void UpdateBulletKernel(int* speedx, int* speedy, int* NowX, int* Now
 		{
 			NowX[idx] += speedx[idx];
 			NowY[idx] += speedy[idx];
+			if (NowX[idx] == ThePlayerX && NowY[idx] == ThePlayerY)
+			{
+				IfBossBulletValid[idx] = 0;
+				BossHitPlayer[idx] = 1;
+			}
 			if (NowX[idx] < 0 || NowX[idx] >= TheWidth || NowY[idx] < 0 || NowY[idx] >= TheHeight)
 			{
 				IfBossBulletValid[idx] = 0;
@@ -22,33 +35,86 @@ __global__ void UpdateBulletKernel(int* speedx, int* speedy, int* NowX, int* Now
 		}
 	}
 }
-__global__ void UpdatePlayerBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, int* IfPlayerBulletValid, int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex)
+__global__ void UpdatePlayerBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, int* IfPlayerBulletValid, 
+	int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex,int BossX,int BossY,int *PlayerHitBoss,int *BossNowX,int *BossNowY,int maxBossIndex)
 {
+	__shared__ int TheBossX;
+	__shared__ int TheBossY;
+	TheBossX = BossX;
+	TheBossY = BossY;
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx < currentIndex)
 	{
-		if (IfPlayerBulletValid[idx])
+		if (IfPlayerBulletValid[idx]==1)
 		{
 			NowX[idx] += speedx[idx];
 			NowY[idx] += speedy[idx];
+			for (int i = 0; i < maxBossIndex; ++i)
+			{
+				if (NowX[idx] == BossNowX[i] && NowY[idx] == BossNowY[i])
+				{
+					IfPlayerBulletValid[idx] = 0;
+				}
+			}
+			if (NowX[idx] == TheBossX && NowY[idx] == TheBossY)
+			{
+				IfPlayerBulletValid[idx] = 0;
+				PlayerHitBoss[idx] = 1;
+			}
+			if (NowX[idx] < 0 || NowX[idx] >= TheWidth || NowY[idx] < 0 || NowY[idx] >= TheHeight)
+			{
+				IfPlayerBulletValid[idx] = 0;
+			}
 			if (D_TheGrid[NowY[idx] * TheWidth + NowX[idx]] == 1)
 			{
-				IfPlayerBulletValid[idx] = false;
+				IfPlayerBulletValid[idx] = 0;
 			}
 		}
 	}
 }
-PhyEngS::PhyEngS(std::shared_ptr<Terr> TheNewTerr) :TheTerr(TheNewTerr), maxBossIndex(64), maxPlayerIndex(64), currentBossIndex(0), currentPlayerIndex(0)
+void PhyEngS::PrePrepare()
+{
+	for (auto& i : PlayerHitBoss)
+	{
+		i = 0;
+	}
+	for (auto& i : BossHitPlayer)
+	{
+		i = 0;
+	}
+	for (int i = 0; i < maxBossIndex; ++i)
+	{
+		if (IfBossBulletValid[i] == 1)
+			TheScreenDraw->Draw(NowX[i], NowY[i], ' ');
+	}
+	for (int i = 0; i < maxPlayerIndex; ++i)
+	{
+		if (IfPlayerBulletValid[i] == 1)
+			TheScreenDraw->Draw(NowXPlayer[i], NowYPlayer[i], ' ');
+	}
+}
+void PhyEngS::AfterCollision()
+{
+	abBoss->BossBeHitted();
+	abPlayer->PlayerBeHitted();
+}
+PhyEngS::PhyEngS(std::shared_ptr<Terr> TheNewTerr, int aPlayerX, int aPlayerY, int aBossX, int aBossY)
+	:TheTerr(TheNewTerr), maxBossIndex(64), maxPlayerIndex(64), 
+	currentBossIndex(0), currentPlayerIndex(0), BossX(aBossX), BossY(aBossY), PlayerX(aPlayerX), PlayerY(aPlayerY)
 {
 	TheScreenDraw = std::make_shared<ScreenDraw>(TheTerr->GetWidth(), TheTerr->GetHeight(), TheTerr->GetGrid());
-	BossBullet.resize(maxBossIndex);
-	PlayerBullet.resize(maxPlayerIndex);
+	PlayerHitBoss.resize(maxBossIndex);
+	BossHitPlayer.resize(maxPlayerIndex);
 	speedx.resize(maxBossIndex);
 	speedy.resize(maxBossIndex);
 	NowX.resize(maxBossIndex);
 	NowY.resize(maxBossIndex);
 	IfBossBulletValid.resize(maxBossIndex);
 	IfPlayerBulletValid.resize(maxPlayerIndex);
+	speedxPlayer.resize(maxPlayerIndex);
+	speedyPlayer.resize(maxPlayerIndex);
+	NowXPlayer.resize(maxPlayerIndex);
+	NowYPlayer.resize(maxPlayerIndex);
 	for (int i = 0; i < maxBossIndex; ++i)
 	{
 		IfBossBulletValid[i] = 0;
@@ -79,7 +145,14 @@ PhyEngS::PhyEngS(std::shared_ptr<Terr> TheNewTerr) :TheTerr(TheNewTerr), maxBoss
 	cudaMalloc((void**)&D_NowXPlayer, maxPlayerIndex * sizeof(int));
 	cudaMalloc((void**)&D_NowYPlayer, maxPlayerIndex * sizeof(int));
 	cudaMalloc((void**)&D_IfPlayerBulletValid, maxPlayerIndex * sizeof(int));
+	cudaMalloc((void**)&D_PlayerHitBoss, maxBossIndex * sizeof(int));
+	cudaMalloc((void**)&D_BossHitPlayer, maxPlayerIndex * sizeof(int));
 	delete[] TheGrid;
+}
+void PhyEngS::Innitialization(std::shared_ptr<Boss> aBoss, std::shared_ptr<Player> aPlayer)
+{
+	abBoss = aBoss;
+	abPlayer = aPlayer;
 }
 PhyEngS::~PhyEngS()
 {
@@ -94,14 +167,12 @@ PhyEngS::~PhyEngS()
 	cudaFree(D_NowXPlayer);
 	cudaFree(D_NowYPlayer);
 	cudaFree(D_IfPlayerBulletValid);
+	cudaFree(D_PlayerHitBoss);
+	cudaFree(D_BossHitPlayer);
 }
 void PhyEngS::UpDateBullet()
 {
-	for (int i = 0; i < maxBossIndex; ++i)
-	{
-		if (IfBossBulletValid[i]==1)
-			TheScreenDraw->Draw(NowX[i], NowY[i], ' ');
-	}
+	PrePrepare();
 	cudaStream_t stream1, stream2, stream3, stream4, stream5, stream6;
 	cudaStreamCreate(&stream1);
 	cudaStreamCreate(&stream2);
@@ -115,16 +186,18 @@ void PhyEngS::UpDateBullet()
 	cudaMemcpyAsync(D_NowYPlayer, NowYPlayer.data(), maxPlayerIndex * sizeof(int), cudaMemcpyHostToDevice, stream2);
 	cudaMemcpyAsync(D_IfBossBulletValid, IfBossBulletValid.data(), maxBossIndex * sizeof(int), cudaMemcpyHostToDevice, stream1);
 	cudaMemcpyAsync(D_IfPlayerBulletValid, IfPlayerBulletValid.data(), maxPlayerIndex * sizeof(int), cudaMemcpyHostToDevice, stream2);
+	cudaMemcpyAsync(D_PlayerHitBoss, PlayerHitBoss.data(), maxBossIndex * sizeof(int), cudaMemcpyHostToDevice, stream1);
+	cudaMemcpyAsync(D_BossHitPlayer, BossHitPlayer.data(), maxPlayerIndex * sizeof(int), cudaMemcpyHostToDevice, stream2);
 	cudaStreamSynchronize(stream1);
 	cudaStreamSynchronize(stream2);
 	cudaStreamDestroy(stream1);
 	cudaStreamDestroy(stream2);
 	cudaStreamCreate(&stream3);
 	cudaStreamCreate(&stream4);
-	int blockSize = 256;
+	int blockSize = 32;
 	int numBlocks = (currentBossIndex + blockSize - 1) / blockSize;
-	UpdateBulletKernel << <numBlocks, blockSize, 0, stream3 >> > (D_speedx, D_speedy, D_NowX, D_NowY, D_IfBossBulletValid, D_TheGrid, TheTerr->GetWidth(), TheTerr->GetHeight(), currentBossIndex);
-	UpdatePlayerBulletKernel << <numBlocks, blockSize, 0, stream4 >> > (D_speedxPlayer, D_speedyPlayer, D_NowXPlayer, D_NowYPlayer, D_IfPlayerBulletValid, D_TheGrid, TheTerr->GetWidth(), TheTerr->GetHeight(), currentPlayerIndex);
+	UpdateBulletKernel << <numBlocks, blockSize, 0, stream3 >> > (D_speedx, D_speedy, D_NowX, D_NowY, D_IfBossBulletValid, D_TheGrid, TheTerr->GetWidth(), TheTerr->GetHeight(), currentBossIndex,PlayerX,PlayerY,D_BossHitPlayer);
+	UpdatePlayerBulletKernel << <numBlocks, blockSize, 0, stream3 >> > (D_speedxPlayer, D_speedyPlayer, D_NowXPlayer, D_NowYPlayer, D_IfPlayerBulletValid, D_TheGrid, TheTerr->GetWidth(), TheTerr->GetHeight(), currentPlayerIndex,BossX,BossY,D_PlayerHitBoss,D_NowX,D_NowY,maxBossIndex);
 	cudaStreamSynchronize(stream3);
 	cudaStreamSynchronize(stream4);
 	cudaStreamDestroy(stream3);
@@ -139,29 +212,84 @@ void PhyEngS::UpDateBullet()
 	cudaMemcpyAsync(NowXPlayer.data(), D_NowXPlayer, maxPlayerIndex * sizeof(int), cudaMemcpyDeviceToHost, stream6);
 	cudaMemcpyAsync(NowY.data(), D_NowY, maxBossIndex * sizeof(int), cudaMemcpyDeviceToHost, stream5);
 	cudaMemcpyAsync(NowYPlayer.data(), D_NowYPlayer, maxPlayerIndex * sizeof(int), cudaMemcpyDeviceToHost, stream6);
-	cudaMemcpyAsync(IfBossBulletValid.data(), D_IfBossBulletValid, maxBossIndex * sizeof(bool), cudaMemcpyDeviceToHost, stream5);
-	cudaMemcpyAsync(IfPlayerBulletValid.data(), D_IfPlayerBulletValid, maxPlayerIndex * sizeof(bool), cudaMemcpyDeviceToHost, stream6);
+	cudaMemcpyAsync(IfBossBulletValid.data(), D_IfBossBulletValid, maxBossIndex * sizeof(int), cudaMemcpyDeviceToHost, stream5);
+	cudaMemcpyAsync(IfPlayerBulletValid.data(), D_IfPlayerBulletValid, maxPlayerIndex * sizeof(int), cudaMemcpyDeviceToHost, stream6);
+	cudaMemcpyAsync(PlayerHitBoss.data(), D_PlayerHitBoss, maxBossIndex * sizeof(int), cudaMemcpyDeviceToHost, stream5);
+	cudaMemcpyAsync(BossHitPlayer.data(), D_BossHitPlayer, maxPlayerIndex * sizeof(int), cudaMemcpyDeviceToHost, stream6);
 	cudaStreamSynchronize(stream5);
 	cudaStreamSynchronize(stream6);
 	cudaStreamDestroy(stream5);
 	cudaStreamDestroy(stream6);
+	AfterCollision();
+}
+
+void PhyEngS::Draw()
+{
 	for (int i = 0; i < maxBossIndex; ++i)
 	{
-		if (IfBossBulletValid[i]==1)
-			TheScreenDraw->Draw(NowX[i], NowY[i], 'B');
+		if (IfBossBulletValid[i] == 1)
+			TheScreenDraw->Draw(NowX[i], NowY[i], 'b');
 	}
-	TheScreenDraw->Display();
+	for (int i = 0; i < maxPlayerIndex; ++i)
+	{
+		if (IfPlayerBulletValid[i] == 1)
+			TheScreenDraw->Draw(NowXPlayer[i], NowYPlayer[i], 'O');
+	}
+	TheScreenDraw->Draw(BossX, BossY, BossChar);
+	TheScreenDraw->Draw(PlayerX, PlayerY, PlayerChar);
+}
+int PhyEngS::GetPlayerBeHittedTime()
+{
+	int j = 0;
+	for(int i=0;i<maxBossIndex;++i)
+	{
+		if (BossHitPlayer[i] == 1)
+			++j;
+	}
+	return j;
+}
+int PhyEngS::GetBossBeHittedTime()
+{
+	int j = 0;
+	for (int i = 0; i < maxPlayerIndex; ++i)
+	{
+		if (PlayerHitBoss[i] == 1)
+			++j;
+	}
+	return j;
 }
 int main()
 {
-	std::shared_ptr<Terr> TheTerr = std::make_shared<Terr>();
-	std::shared_ptr<PhyEngS> ThePhyEng = std::make_shared<PhyEngS>(TheTerr);
-	ThePhyEng->spawnBossBullet(0, 0, 1, 1);
-	ThePhyEng->spawnBossBullet(24, 0, 1, 1);
-	ThePhyEng->spawnBossBullet(17, 0, 1, 1);
-	while (true)
+	auto Grid = std::make_shared<Terr>();
+	if (Grid->IfCanMove(1, 20) && Grid->IfCanMove(1, 1))
 	{
-		ThePhyEng->UpDateBullet();
-		Sleep(20);
+		auto PhyEng = std::make_shared<PhyEngS>(Grid, 1, 20, 1, 1);
+		auto Bossphysis = std::make_shared<physis>(PhyEng);
+		auto aPlayerphysis = std::make_shared<physis>(PhyEng);
+		auto aplayer = std::make_shared<Player>(aPlayerphysis);
+		auto aBoss = std::make_shared<Boss>(Bossphysis, aplayer);
+		auto aAINode = std::make_shared<AINode>(aBoss);
+		PhyEng->Innitialization(aBoss, aplayer);
+		int numnow = 0;
+		while (true)
+		{
+			if (numnow%3==0)
+			{
+				aAINode->Execute();
+			}
+			if (numnow % 180 == 1)
+				PhyEng->ReSetBullet();
+            if(numnow%24==1)
+			aplayer->PlayerAttack();
+			PhyEng->UpDateBullet();
+			PhyEng->Draw();
+			PhyEng->TheScreenDraw->Display();
+			numnow++;
+			if (numnow >= 2048)
+				numnow = 0;
+			if (aplayer->GetHealth() <= 0)
+				break;
+			Sleep(100);
+		}
 	}
 }

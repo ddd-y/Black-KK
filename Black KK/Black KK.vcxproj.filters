@@ -48,20 +48,17 @@
     <ClInclude Include="physis.h">
       <Filter>head\physis</Filter>
     </ClInclude>
-    <ClInclude Include="BulletPhy.h">
-      <Filter>head\physis</Filter>
-    </ClInclude>
     <ClInclude Include="FirstSession.h">
       <Filter>head\AINode</Filter>
     </ClInclude>
     <ClInclude Include="SecondSession.h">
       <Filter>head\AINode</Filter>
     </ClInclude>
-    <ClInclude Include="PhyEng.h">
-      <Filter>head\physis</Filter>
-    </ClInclude>
     <ClInclude Include="PhyEngS.cuh">
       <Filter>head\physis</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerController.h">
+      <Filter>head</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -83,9 +80,6 @@
     <ClCompile Include="AINode.cpp">
       <Filter>source\AINodeY</Filter>
     </ClCompile>
-    <ClCompile Include="BulletPhy.cpp">
-      <Filter>source\physisy</Filter>
-    </ClCompile>
     <ClCompile Include="physis.cpp">
       <Filter>source\physisy</Filter>
     </ClCompile>
@@ -95,8 +89,8 @@
     <ClCompile Include="SecondSession.cpp">
       <Filter>source\AINodeY</Filter>
     </ClCompile>
-    <ClCompile Include="PhyEng.cpp">
-      <Filter>source\physisy</Filter>
+    <ClCompile Include="PlayerController.cpp">
+      <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

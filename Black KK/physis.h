@@ -1,24 +1,72 @@
 #pragma once
+#include"PhyEngS.cuh"
 #include<memory>
 #include<vector>
+class PhyEngS;
 class physis
 {
 protected:
-	int TheID;//ID用于给物理引擎
+	int BossHitTime;//Boss撞墙的次数
+	std::shared_ptr<PhyEngS> ThePhyEng;//物理引擎
 public:
-	int GetTheID()
-	{
-		return TheID;
+	void ChangeBossAttack(int NewAttack){
+		ThePhyEng->ChangeBossAttack(NewAttack);
 	}
-	virtual ~physis() = default;
+	int GetBossAttack(){
+		return ThePhyEng->GetBossAttack();
+	}
+	std::shared_ptr<std::vector<std::vector<int>>> GetTheGrid()
+	{
+		return ThePhyEng->GetGrid();
+	}
+	int GetPlayerX()
+	{
+		return ThePhyEng->GetPlayerX();
+	}
+	int GetPlayerY()
+	{
+		return ThePhyEng->GetPlayerY();
+	}
+	int GetBossX() {
+		return ThePhyEng->GetBossX();
+	}
+	int GetBossY() {
+		return ThePhyEng->GetBossY();
+	}
+	virtual ~physis();
 	physis() = delete;
-	physis(int TheId) :
-		TheID(TheId)
+	physis(std::shared_ptr<PhyEngS> Phyeng) :ThePhyEng(Phyeng),
+		BossHitTime(0)
 	{
 	}
-	virtual void AfterCollision();
-	void ChangeLocation(int TheNewX, int TheNewY);//闪现，用于Boss的技能
-	void ChangeSlow(int dx, int dy);//一步步走,不判断碰撞，碰撞判断由引擎来实现
-	bool IfHit(int dx, int dy);//判断是否碰撞，true表示碰撞，false表示没有碰撞
+	void ChangeLocation(int TheNewX, int TheNewY)
+	{
+		if(!ThePhyEng->WantToChangeBossLocation(TheNewX, TheNewY))
+			++BossHitTime;
+	}
+	void PlayerChaneSlow(int dx,int dy)
+	{
+		int NewX = ThePhyEng->GetPlayerX() + dx;
+		int NewY = ThePhyEng->GetPlayerY() + dy;
+		ThePhyEng->WantToChangePlayerLocation(NewX, NewY);
+	}
+	bool IfBossNeedToFlash()//判断Boss是否需要闪现
+	{
+		if (BossHitTime > 4)
+		{
+			BossHitTime = 0;
+			return true;
+        }
+		return false;
+	}
+	int GetPlayerBeHittedTime() {
+		return ThePhyEng->GetPlayerBeHittedTime();
+	}
+	int GetBossBeHitterTime() {
+		return ThePhyEng->GetBossBeHittedTime();
+	}
+	void BossSpawnFourwayBullet();
+	void BossSpawnEightwayBullet();
+	void PlayerSpawnBullet(int dx,int dy);
 };
 

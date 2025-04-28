@@ -1,18 +1,29 @@
 #include "physis.h"
-void physis::AfterCollision()
+physis::~physis()
 {
 }
-void physis::ChangeLocation(int TheNewX, int TheNewY)
+void physis::BossSpawnFourwayBullet()
 {
-
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), 1, 0);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), 0, 1);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), -1, 0);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), 0, -1);
 }
 
-void physis::ChangeSlow(int dx, int dy)
+void physis::BossSpawnEightwayBullet()
 {
-
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), 1, 0);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), 0, 1);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), -1, 0);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), 0, -1);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), 1, 1);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), -1, 1);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), 1, -1);
+	ThePhyEng->spawnBossBullet(ThePhyEng->GetBossX(), ThePhyEng->GetBossY(), -1, -1);
 }
 
-bool physis::IfHit(int dx, int dy)
+void physis::PlayerSpawnBullet(int dx, int dy)
 {
-	return false;
+	ThePhyEng->spawnPlayerBullet(ThePhyEng->GetPlayerX(), ThePhyEng->GetPlayerY(), dx, dy);
 }
+
