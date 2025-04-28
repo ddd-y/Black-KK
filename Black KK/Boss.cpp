@@ -1,8 +1,7 @@
 #include "Boss.h"
-#include "Player.h"
 void Boss::BossBeHitted()
 {
-	int PlayerAtt = ThePlayer->GetAttack();
+	int PlayerAtt = ThePhysis->GetPlayerAttack();
 	int Hurt = ( - PlayerAtt) / defense;
 	for (int i = 0, j = ThePhysis->GetBossBeHitterTime(); i < j; ++i)
 	{
@@ -19,12 +18,12 @@ inline void Boss::ChangeHealth(int Change)
 }
 bool Boss::IfDistance()//true表示在攻击范围内
 {
-	int distance = abs( GetMeX() - ThePlayer->GetX()) + abs(GetMeY() - ThePlayer->GetY());
+	int distance = abs( GetMeX() - ThePhysis->GetPlayerX()) + abs(GetMeY() - ThePhysis->GetPlayerY());
 	return distance < 16;
 }
 void Boss::GetNextStep()
 {
-	auto Goal = std::make_shared<TheNode>(ThePlayer->GetX(),ThePlayer->GetY(), nullptr, nullptr);
+	auto Goal = std::make_shared<TheNode>(ThePhysis->GetPlayerX(), ThePhysis->GetPlayerY(), nullptr, nullptr);
 	auto current = std::make_shared<TheNode>(GetMeX(), GetMeY(), nullptr, nullptr);
 	auto ThePath = JPSRoad(current, Goal, *TheGrid);
 	int NewX1 = 0, NewY1 = 0;
@@ -42,8 +41,8 @@ void Boss::GetNextStep()
 }
 void Boss::Flash()
 {
-	int playerX = ThePlayer->GetX();
-	int playerY = ThePlayer->GetY();
+	int playerX = ThePhysis->GetPlayerX();
+	int playerY = ThePhysis->GetPlayerY();
 	int goalX, goalY;
 	bool validPosition = false;
 	std::srand(std::time(nullptr));

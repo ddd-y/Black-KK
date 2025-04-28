@@ -15,6 +15,12 @@ public:
 	int GetBossAttack(){
 		return ThePhyEng->GetBossAttack();
 	}
+	void ChangePlayerAttack(int NewAttack){
+		ThePhyEng->ChangePlayerAttack(NewAttack);
+	}
+	int GetPlayerAttack() {
+		return ThePhyEng->GetPlayerAttack();
+	}
 	std::shared_ptr<std::vector<std::vector<int>>> GetTheGrid()
 	{
 		return ThePhyEng->GetGrid();

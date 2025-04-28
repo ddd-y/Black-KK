@@ -42,6 +42,7 @@ class PhyEngS
 	int PlayerX, PlayerY;
 	int BossX, BossY;
 	int BossAttack=0;
+	int PlayerAttack = 0;
 	char BossChar ='b';
 	char PlayerChar = 'p';
 	void PrePrepare();
@@ -52,7 +53,9 @@ public:
 	int GetBossX() { return BossX; }
 	int GetBossY() { return BossY; }
 	int GetBossAttack() { return BossAttack; }
+	int GetPlayerAttack(){ return PlayerAttack;}
 	void ChangeBossAttack(int thenew) { BossAttack = thenew; }
+	void ChangePlayerAttack(int Thenew) { PlayerAttack = Thenew; }
 	bool WantToChangeBossLocation(int aBossX, int aBossY)//false表示不可以移动
 	{
 		if (!TheTerr->IfCanMove(aBossX, aBossY))
@@ -79,23 +82,6 @@ public:
 	std::shared_ptr<ScreenDraw> TheScreenDraw;
 	~PhyEngS();
 	PhyEngS() = delete;
-	void spawnBossBullet(int x, int y, int Thespeedx, int Thespeedy)
-	{
-		if (IfBossBulletValid[currentBossIndex] == 1)
-		{
-			return;
-		}
-		speedx[currentBossIndex] = Thespeedx;
-		speedy[currentBossIndex] = Thespeedy;
-		NowX[currentBossIndex] = x;
-		NowY[currentBossIndex] = y;
-		IfBossBulletValid[currentBossIndex] = 1;
-		++currentBossIndex;
-		if (currentBossIndex >= maxBossIndex)
-		{
-			currentBossIndex = 0;
-		}
-	}
 	void spawnPlayerBullet(int x, int y, int Thespeedx, int Thespeedy)
 	{
 		if (IfPlayerBulletValid[currentPlayerIndex] == 1)
@@ -111,6 +97,23 @@ public:
 		if (currentPlayerIndex >= maxPlayerIndex)
 		{
 			currentPlayerIndex = 0;
+		}
+	}
+	void spawnBossBullet(int x, int y, int Thespeedx, int Thespeedy)
+	{
+		if (IfBossBulletValid[currentBossIndex] == 1)
+		{
+			return;
+		}
+		speedx[currentBossIndex] = Thespeedx;
+		speedy[currentBossIndex] = Thespeedy;
+		NowX[currentBossIndex] = x;
+		NowY[currentBossIndex] = y;
+		IfBossBulletValid[currentBossIndex] = 1;
+		++currentBossIndex;
+		if (currentBossIndex >= maxBossIndex)
+		{
+			currentBossIndex = 0;
 		}
 	}
 	void UpDateBullet();

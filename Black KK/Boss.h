@@ -8,7 +8,6 @@ class Player;
 class Boss
 {
 private:
-	std::shared_ptr<Player> ThePlayer;
 	std::shared_ptr<std::vector<std::vector<int>>> TheGrid;
 	std::shared_ptr<physis> ThePhysis;//物理实体
 	int maxhealth;//最大生命值
@@ -79,8 +78,8 @@ public:
 	void Flash();//闪现
 	void BossBeHitted();//被子弹打到时的反应
 	Boss() = delete;
-	Boss(std::shared_ptr<physis> aphysis, std::shared_ptr<Player> aplayer) :
-		ThePhysis(aphysis), ThePlayer(aplayer), maxhealth(100), health(100), attack(3), defense(1),
+	Boss(std::shared_ptr<physis> aphysis) :
+		ThePhysis(aphysis),maxhealth(100), health(100), attack(3), defense(1),
 		FirstFlash(10), SecondFlash(20), currentFlash(FirstFlash), SpeedFirst(3), SpeedSecond(2), AttackFirst(10), AttackSecond(5)
 	{
 		TheGrid = ThePhysis->GetTheGrid();

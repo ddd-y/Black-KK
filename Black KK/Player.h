@@ -43,6 +43,7 @@ public:
 	Player(std::shared_ptr<physis> aphysis) :
 		ThePhysis(aphysis), maxhealth(100), health(100), attack(10), defense(1), CurrentDx(0), CurrentDy(-1), LeftChar('q'), RightChar('p')
 	{
+		ThePhysis->ChangePlayerAttack(attack);
 	}
 	void PlayerAttack();
 	void MoveUp();
