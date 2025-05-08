@@ -37,7 +37,14 @@ void Boss::GetNextStep()
 	bool valid = (currentX != NewX1)&&(currentY != NewY1);
 	if (valid)
 		NewY1 = currentY;
-	ThePhysis->ChangeLocation(NewX1, NewY1);
+	Tosy->Wait();
+	if (ChangeLocation(NewX1, NewY1))
+	{
+		return;
+	}
+	NewY1 = (*ThePath)[1]->y;
+	NewX1 = currentX;
+	ChangeLocation(NewX1, NewY1);
 }
 void Boss::Flash()
 {
@@ -58,6 +65,7 @@ void Boss::Flash()
 			validPosition = true;
 		}
 	}
+	Tosy->Wait();
 	ChangeLocation(goalX, goalY);
 }
 Boss::~Boss()

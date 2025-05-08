@@ -45,10 +45,14 @@ public:
 		BossHitTime(0)
 	{
 	}
-	void ChangeLocation(int TheNewX, int TheNewY)
+	bool ChangeLocation(int TheNewX, int TheNewY)
 	{
-		if(!ThePhyEng->WantToChangeBossLocation(TheNewX, TheNewY))
+		if (!ThePhyEng->WantToChangeBossLocation(TheNewX, TheNewY))
+		{
 			++BossHitTime;
+			return false;
+		}
+		return true;
 	}
 	void PlayerChaneSlow(int dx,int dy)
 	{

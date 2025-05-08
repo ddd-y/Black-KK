@@ -5,6 +5,9 @@
     <CudaCompile Include="PhyEngS.cu">
       <Filter>source\physisy</Filter>
     </CudaCompile>
+    <CudaCompile Include="TerrS.cu">
+      <Filter>source</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="head">
@@ -36,9 +39,6 @@
     <ClInclude Include="Player.h">
       <Filter>head</Filter>
     </ClInclude>
-    <ClInclude Include="Terr.h">
-      <Filter>head</Filter>
-    </ClInclude>
     <ClInclude Include="ScreenDraw.h">
       <Filter>head</Filter>
     </ClInclude>
@@ -57,7 +57,13 @@
     <ClInclude Include="PhyEngS.cuh">
       <Filter>head\physis</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerController.h">
+    <ClInclude Include="TerrS.cuh">
+      <Filter>head</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMode.h">
+      <Filter>head</Filter>
+    </ClInclude>
+    <ClInclude Include="MyBarrier.h">
       <Filter>head</Filter>
     </ClInclude>
   </ItemGroup>
@@ -69,9 +75,6 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="Player.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="Terr.cpp">
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="ScreenDraw.cpp">
@@ -89,7 +92,10 @@
     <ClCompile Include="SecondSession.cpp">
       <Filter>source\AINodeY</Filter>
     </ClCompile>
-    <ClCompile Include="PlayerController.cpp">
+    <ClCompile Include="GameMode.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="MyBarrier.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

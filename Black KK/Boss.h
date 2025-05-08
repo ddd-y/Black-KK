@@ -10,6 +10,7 @@ class Boss
 private:
 	std::shared_ptr<std::vector<std::vector<int>>> TheGrid;
 	std::shared_ptr<physis> ThePhysis;//物理实体
+	std::shared_ptr<MyBarrier> Tosy;
 	int maxhealth;//最大生命值
 	int health;//生命值
 	int attack;//攻击力
@@ -24,9 +25,11 @@ private:
 	int AttackFirst;//第一阶段攻击频率
 	int AttackSecond;//第二阶段攻击频率
 	void ChangeHealth(int Change);
-	void ChangeLocation(int TheNewX, int TheNewY)//闪现，用于Boss的技能，该点是否能降落由其他来判断
+	bool ChangeLocation(int TheNewX, int TheNewY)//闪现，用于Boss的技能，该点是否能降落由其他来判断
 	{
-		ThePhysis->ChangeLocation(TheNewX, TheNewY);
+		if(!ThePhysis->ChangeLocation(TheNewX, TheNewY))
+			return false;
+		return true;
 	}
 	int GetMeX()
 	{
@@ -37,6 +40,10 @@ private:
 		return ThePhysis->GetBossY();
 	}
 public:
+	void SetBarrier(std::shared_ptr<MyBarrier> abb) 
+	{
+		Tosy = abb;
+	}
 	int GetHealthNow()
 	{
 		return health;
@@ -79,7 +86,7 @@ public:
 	void BossBeHitted();//被子弹打到时的反应
 	Boss() = delete;
 	Boss(std::shared_ptr<physis> aphysis) :
-		ThePhysis(aphysis),maxhealth(100), health(100), attack(3), defense(1),
+		ThePhysis(aphysis),maxhealth(100), health(100), attack(5), defense(1),
 		FirstFlash(10), SecondFlash(20), currentFlash(FirstFlash), SpeedFirst(3), SpeedSecond(2), AttackFirst(10), AttackSecond(5)
 	{
 		TheGrid = ThePhysis->GetTheGrid();

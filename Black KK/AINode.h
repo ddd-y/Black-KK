@@ -1,8 +1,9 @@
 #pragma once
 #include<memory>
-class Boss;
-class FirstSession;
-class SecondSession;
+#include"FirstSession.h"
+#include"SecondSession.h"
+#include"Boss.h"
+#include"MyBarrier.h"
 class AINode
 {
 private:
@@ -10,17 +11,17 @@ private:
 	std::shared_ptr<Boss> ControllGoal;
 	std::shared_ptr<FirstSession> TheFirstSession;//第一阶段
 	std::shared_ptr<SecondSession> TheSecondSession;//第二阶段
+	std::shared_ptr<MyBarrier> Tosy=nullptr;
 	void exeleft();
 	void exeright();
 	void Trace();//追击
 	void PlusFrame()
 	{
-		++CurrentFrame;
-		if (CurrentFrame >= 2048)
-			CurrentFrame = 0;
+		CurrentFrame = (CurrentFrame + 1) % 2048;
 	}
 public:
 	AINode(std::shared_ptr<Boss> ControllGoal);
+	void SetBarrier(std::shared_ptr<MyBarrier> abb);
 	void Execute();
 	~AINode() = default;
 };

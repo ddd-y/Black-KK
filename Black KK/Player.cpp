@@ -42,3 +42,13 @@ void Player::PlayerBeHitted()
 		ChangeHealth(hurt);
 	}
 }
+
+void Player::DealWord()
+{
+	if(Tosy)
+	Tosy->Wait();
+}
+
+void Player::UpLoadWord()
+{
+}

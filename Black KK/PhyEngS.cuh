@@ -1,8 +1,10 @@
 #pragma once
-#include"Terr.h"
+#include"TerrS.cuh"
 #include"ScreenDraw.h"
 #include<vector>
 #include<memory>
+#include<mutex>
+#include"MyBarrier.h"
 class Boss;
 class Player;
 class PhyEngS
@@ -19,9 +21,10 @@ class PhyEngS
 	std::vector<int> NowYPlayer;//玩家子弹坐标y
 	std::vector<int> IfBossBulletValid;//子弹是否有效
 	std::vector<int> IfPlayerBulletValid;//玩家子弹是否有效
-	std::shared_ptr<Terr> TheTerr;
+	std::shared_ptr<TerrS> TheTerr;
 	std::shared_ptr<Boss> abBoss;
 	std::shared_ptr<Player> abPlayer;
+	std::shared_ptr<MyBarrier> Tosy;
 	int* D_PlayerHitBoss;//设备端的玩家是否击中Boss
 	int* D_BossHitPlayer;//设备端的Boss是否击中玩家
 	int* D_TheGrid;//设备端的地图
@@ -35,6 +38,8 @@ class PhyEngS
 	int* D_speedyPlayer;//设备端的玩家子弹速度y
 	int* D_NowXPlayer;//设备端的玩家子弹坐标x
 	int* D_NowYPlayer;//设备端的玩家子弹坐标y
+	std::mutex PlayerBulletMutex;
+	std::mutex BossBulletMutex;
 	int currentBossIndex;
 	int currentPlayerIndex;
 	int maxBossIndex;
@@ -43,11 +48,13 @@ class PhyEngS
 	int BossX, BossY;
 	int BossAttack=0;
 	int PlayerAttack = 0;
+	cudaStream_t stream1, stream2, stream3;
 	char BossChar ='b';
 	char PlayerChar = 'p';
 	void PrePrepare();
 	void AfterCollision();
 public:
+	void SetBarrier(std::shared_ptr<MyBarrier> &abb) { Tosy = abb; }
 	int GetPlayerX() { return PlayerX; }
 	int GetPlayerY() { return PlayerY; }
 	int GetBossX() { return BossX; }
@@ -77,13 +84,14 @@ public:
 		PlayerX = aPlayerX;
 		PlayerY = aPlayerY;
 	}
-	PhyEngS(std::shared_ptr<Terr> TheTerr,int aPlayerX,int aPlayerY,int aBossX,int aBossY);
+	PhyEngS(int aPlayerX,int aPlayerY,int aBossX,int aBossY);
 	void Innitialization(std::shared_ptr<Boss> aBoss, std::shared_ptr<Player> aPlayer);//不要忘记初始化这两个东西
-	std::shared_ptr<ScreenDraw> TheScreenDraw;
+	std::shared_ptr<MyScreenDraw> TheScreenDraw;
 	~PhyEngS();
 	PhyEngS() = delete;
 	void spawnPlayerBullet(int x, int y, int Thespeedx, int Thespeedy)
 	{
+		std::lock_guard<std::mutex> abs(PlayerBulletMutex);
 		if (IfPlayerBulletValid[currentPlayerIndex] == 1)
 		{
 			return;
@@ -93,14 +101,11 @@ public:
 		NowXPlayer[currentPlayerIndex] = x;
 		NowYPlayer[currentPlayerIndex] = y;
 		IfPlayerBulletValid[currentPlayerIndex] = 1;
-		++currentPlayerIndex;
-		if (currentPlayerIndex >= maxPlayerIndex)
-		{
-			currentPlayerIndex = 0;
-		}
+		currentPlayerIndex=(currentPlayerIndex+1)%maxPlayerIndex;
 	}
 	void spawnBossBullet(int x, int y, int Thespeedx, int Thespeedy)
 	{
+		std::lock_guard<std::mutex> abs(BossBulletMutex);
 		if (IfBossBulletValid[currentBossIndex] == 1)
 		{
 			return;
@@ -110,38 +115,15 @@ public:
 		NowX[currentBossIndex] = x;
 		NowY[currentBossIndex] = y;
 		IfBossBulletValid[currentBossIndex] = 1;
-		++currentBossIndex;
-		if (currentBossIndex >= maxBossIndex)
-		{
-			currentBossIndex = 0;
-		}
+		currentBossIndex = (currentBossIndex + 1) % maxBossIndex;
 	}
 	void UpDateBullet();
-	void ReSetBullet()
-	{
-		for(int i=0;i<maxBossIndex;++i)
-		{
-			if (IfBossBulletValid[i] == 1)
-			{
-				TheScreenDraw->Draw(NowX[i], NowY[i], ' ');
-				IfBossBulletValid[i] = 0;
-			}
-			BossHitPlayer[i] = 0;
-		}
-		for (int i = 0; i < maxPlayerIndex; ++i)
-		{
-			if (IfPlayerBulletValid[i] == 1)
-			{
-				TheScreenDraw->Draw(NowXPlayer[i], NowYPlayer[i], ' ');
-				IfPlayerBulletValid[i] = 0;
-			}
-			PlayerHitBoss[i] = 0;
-		}
-		currentBossIndex = 0;
-		currentPlayerIndex = 0;
-	}
 	void Draw();
 	std::shared_ptr<std::vector<std::vector<int>>> GetGrid() { return TheTerr->GetGrid(); }
+	void UseRender()
+	{
+		TheScreenDraw->Render();
+	}
 	int GetPlayerBeHittedTime();
 	int GetBossBeHittedTime();
 };
