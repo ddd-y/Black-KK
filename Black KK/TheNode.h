@@ -21,7 +21,7 @@ struct TheNode//用于寻路用
 	}
 	TheNode() : TheG(10000), Theh(10000), Thef(20000), TheLast(nullptr), x(0), y(0) {
 	}
-	TheNode(int x, int y, std::shared_ptr<TheNode> Target,std::shared_ptr<TheNode> Last) : TheG(10000), Theh(10000), Thef(0), x(x), y(y) {
+	TheNode(int x, int y, std::shared_ptr<TheNode> Target, std::shared_ptr<TheNode> Last) : TheG(10000), Theh(10000), Thef(0), x(x), y(y) {
 		if (Last)
 		{
 			TheLast = Last;
@@ -33,7 +33,7 @@ struct TheNode//用于寻路用
 			Theh = heuristic(*this, *Target);
 		}
 		else {
-			Theh = 0; 
+			Theh = 0;
 		}
 		Thef = TheG + Theh;
 	}
@@ -44,8 +44,7 @@ private:
 	double Distance(const std::shared_ptr<TheNode>& a, const std::shared_ptr<TheNode>& b) {
 		int xDiff = std::abs(a->x - b->x);
 		int yDiff = std::abs(a->y - b->y);
-		return xDiff+yDiff;
+		return xDiff + yDiff;
 	}
 };
 std::shared_ptr<std::vector<std::shared_ptr<TheNode>>> JPSRoad(std::shared_ptr<TheNode> current, std::shared_ptr<TheNode> Goal, const std::vector<std::vector<int>>& TheGrid);
-

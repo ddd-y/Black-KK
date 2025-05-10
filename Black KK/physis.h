@@ -9,6 +9,12 @@ protected:
 	int BossHitTime;//Boss撞墙的次数
 	std::shared_ptr<PhyEngS> ThePhyEng;//物理引擎
 public:
+	void BossChangeSecond() {
+		ThePhyEng->SetBossCharAndColor('B', 0x0004);
+	}
+	void ChangePlayerWay(char bbs, int ssd) {
+		ThePhyEng->SetPlayerCharAndColor(bbs, ssd);
+	}
 	void ChangeBossAttack(int NewAttack){
 		ThePhyEng->ChangeBossAttack(NewAttack);
 	}

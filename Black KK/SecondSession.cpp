@@ -10,6 +10,5 @@ SecondSession::~SecondSession()
 
 void SecondSession::exenew()
 {
-	ControllGoal->Flash();
 	ControllGoal->Skillsecond();
 }

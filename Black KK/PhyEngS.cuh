@@ -2,8 +2,10 @@
 #include"TerrS.cuh"
 #include"ScreenDraw.h"
 #include<vector>
+#include<array>
 #include<memory>
 #include<mutex>
+#include<queue>
 #include"MyBarrier.h"
 class Boss;
 class Player;
@@ -38,8 +40,10 @@ class PhyEngS
 	int* D_speedyPlayer;//设备端的玩家子弹速度y
 	int* D_NowXPlayer;//设备端的玩家子弹坐标x
 	int* D_NowYPlayer;//设备端的玩家子弹坐标y
-	std::mutex PlayerBulletMutex;
-	std::mutex BossBulletMutex;
+	std::mutex BossBulletMu;
+	std::mutex PlayerBulletMu;
+	std::mutex BossMessage;
+	std::mutex PlayerMessage;
 	int currentBossIndex;
 	int currentPlayerIndex;
 	int maxBossIndex;
@@ -48,12 +52,33 @@ class PhyEngS
 	int BossX, BossY;
 	int BossAttack=0;
 	int PlayerAttack = 0;
+	int PlayerAttackCount = 0;
 	cudaStream_t stream1, stream2, stream3;
 	char BossChar ='b';
+	int BossColor = 0x7;
 	char PlayerChar = 'p';
+	int PlayerColor = 0x7;
+	std::queue<std::array<int,2>> Bossqueue;
+	std::queue<std::array<int, 2>> Playerqueue;
+	std::queue<std::array<int, 4>> BossBulletqueue;
+	std::queue<std::array<int, 4>> PlayerBulletqueue;
 	void PrePrepare();
 	void AfterCollision();
+	void DealBossqueue();
+	void DealPlayerqueue();
+	void DealBossBullet();
+	void DealPlayerBullet();
 public:
+	void SetBossCharAndColor(char cc,int bbs)
+	{
+		BossChar = cc;
+		BossColor = bbs;
+	}
+	void SetPlayerCharAndColor(char cc, int bbs)
+	{
+		PlayerChar = cc;
+		PlayerColor = bbs;
+	}
 	void SetBarrier(std::shared_ptr<MyBarrier> &abb) { Tosy = abb; }
 	int GetPlayerX() { return PlayerX; }
 	int GetPlayerY() { return PlayerY; }
@@ -63,59 +88,40 @@ public:
 	int GetPlayerAttack(){ return PlayerAttack;}
 	void ChangeBossAttack(int thenew) { BossAttack = thenew; }
 	void ChangePlayerAttack(int Thenew) { PlayerAttack = Thenew; }
+	std::mutex* GetBossBulletMu() { return &BossBulletMu; }
+	std::mutex* GetPlayerBulletMu() { return &PlayerBulletMu; }
 	bool WantToChangeBossLocation(int aBossX, int aBossY)//false表示不可以移动
 	{
+		std::lock_guard<std::mutex> Themu(BossMessage);
 		if (!TheTerr->IfCanMove(aBossX, aBossY))
 			return false;
 		if (aBossX == PlayerX && aBossY == PlayerY)
 			return false;
-		TheScreenDraw->Draw(BossX, BossY, ' ');
-		BossX = aBossX;
-		BossY = aBossY;
+		Bossqueue.push({ aBossX,aBossY });
 		return true;
 	}
 	void WantToChangePlayerLocation(int aPlayerX, int aPlayerY)
 	{
+		std::lock_guard<std::mutex> Themu(PlayerMessage);
 		if (!TheTerr->IfCanMove(aPlayerX, aPlayerY))
 			return;
 		if (aPlayerX == BossX && aPlayerY == BossY)
 			return;
-		TheScreenDraw->Draw(PlayerX, PlayerY, ' ');
-		PlayerX = aPlayerX;
-		PlayerY = aPlayerY;
+		if (Playerqueue.size() > 3)
+			return;
+		Playerqueue.push({ aPlayerX,aPlayerY });
 	}
-	PhyEngS(int aPlayerX,int aPlayerY,int aBossX,int aBossY);
+	PhyEngS();
 	void Innitialization(std::shared_ptr<Boss> aBoss, std::shared_ptr<Player> aPlayer);//不要忘记初始化这两个东西
 	std::shared_ptr<MyScreenDraw> TheScreenDraw;
 	~PhyEngS();
-	PhyEngS() = delete;
 	void spawnPlayerBullet(int x, int y, int Thespeedx, int Thespeedy)
 	{
-		std::lock_guard<std::mutex> abs(PlayerBulletMutex);
-		if (IfPlayerBulletValid[currentPlayerIndex] == 1)
-		{
-			return;
-		}
-		speedxPlayer[currentPlayerIndex] = Thespeedx;
-		speedyPlayer[currentPlayerIndex] = Thespeedy;
-		NowXPlayer[currentPlayerIndex] = x;
-		NowYPlayer[currentPlayerIndex] = y;
-		IfPlayerBulletValid[currentPlayerIndex] = 1;
-		currentPlayerIndex=(currentPlayerIndex+1)%maxPlayerIndex;
+		PlayerBulletqueue.push({ x,y,Thespeedx,Thespeedy });
 	}
 	void spawnBossBullet(int x, int y, int Thespeedx, int Thespeedy)
 	{
-		std::lock_guard<std::mutex> abs(BossBulletMutex);
-		if (IfBossBulletValid[currentBossIndex] == 1)
-		{
-			return;
-		}
-		speedx[currentBossIndex] = Thespeedx;
-		speedy[currentBossIndex] = Thespeedy;
-		NowX[currentBossIndex] = x;
-		NowY[currentBossIndex] = y;
-		IfBossBulletValid[currentBossIndex] = 1;
-		currentBossIndex = (currentBossIndex + 1) % maxBossIndex;
+		BossBulletqueue.push({ x,y,Thespeedx,Thespeedy });
 	}
 	void UpDateBullet();
 	void Draw();

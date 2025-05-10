@@ -27,17 +27,18 @@ void Boss::GetNextStep()
 	auto current = std::make_shared<TheNode>(GetMeX(), GetMeY(), nullptr, nullptr);
 	auto ThePath = JPSRoad(current, Goal, *TheGrid);
 	int NewX1 = 0, NewY1 = 0;
-	if (ThePath->size() > 1) 
+	if (ThePath->size() > 1)
 	{
 		NewX1 = (*ThePath)[1]->x;
 		NewY1 = (*ThePath)[1]->y;
 	}
+	else
+		return;
 	int currentX = ThePhysis->GetBossX();
 	int currentY = ThePhysis->GetBossY();
 	bool valid = (currentX != NewX1)&&(currentY != NewY1);
 	if (valid)
 		NewY1 = currentY;
-	Tosy->Wait();
 	if (ChangeLocation(NewX1, NewY1))
 	{
 		return;
@@ -65,7 +66,6 @@ void Boss::Flash()
 			validPosition = true;
 		}
 	}
-	Tosy->Wait();
 	ChangeLocation(goalX, goalY);
 }
 Boss::~Boss()

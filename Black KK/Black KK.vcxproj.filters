@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="PhyEngS.cu">
       <Filter>source\physisy</Filter>
     </CudaCompile>
@@ -66,6 +65,9 @@
     <ClInclude Include="MyBarrier.h">
       <Filter>head</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerController.h">
+      <Filter>head</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Boss.cpp">
@@ -96,6 +98,9 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="MyBarrier.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerController.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

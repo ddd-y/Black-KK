@@ -23,6 +23,7 @@ public:
 	AINode(std::shared_ptr<Boss> ControllGoal);
 	void SetBarrier(std::shared_ptr<MyBarrier> abb);
 	void Execute();
+	int GetBossHealth();
 	~AINode() = default;
 };
 

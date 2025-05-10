@@ -83,7 +83,6 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="PhyEngS.cu" />
     <CudaCompile Include="TerrS.cu" />
   </ItemGroup>
@@ -96,6 +95,7 @@
     <ClInclude Include="PhyEngS.cuh" />
     <ClInclude Include="physis.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerController.h" />
     <ClInclude Include="ScreenDraw.h" />
     <ClInclude Include="SecondSession.h" />
     <ClInclude Include="TerrS.cuh" />
@@ -109,6 +109,7 @@
     <ClCompile Include="MyBarrier.cpp" />
     <ClCompile Include="physis.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="ScreenDraw.cpp" />
     <ClCompile Include="SecondSession.cpp" />
     <ClCompile Include="TheNode.cpp" />

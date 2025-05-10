@@ -9,13 +9,9 @@
 #include<fstream>
 #include<thread>
 __global__ void UpdateBulletKernel(int* speedx, int* speedy, int* NowX, int* NowY, int* IfBossBulletValid, 
-	int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex,int PlayerX,int PlayerY,int*BossHitPlayer,int*PlayerNowX,int *PlayerNowY,int *IfPlayerBulletValid
+	int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex,const int ThePlayerX,const int ThePlayerY,int*BossHitPlayer,int*PlayerNowX,int *PlayerNowY,int *IfPlayerBulletValid
     ,int maxPlayerIndex)
 {
-	__shared__ int ThePlayerX;
-	ThePlayerX = PlayerX;
-	__shared__ int ThePlayerY;
-	ThePlayerY = PlayerY;
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx >= currentIndex)
 		return;
@@ -49,12 +45,8 @@ __global__ void UpdateBulletKernel(int* speedx, int* speedy, int* NowX, int* Now
 	}
 }
 __global__ void UpdatePlayerBulletKernel(int* aspeedx, int* aspeedy, int* aNowX, int* aNowY, int* IfPlayerBulletValid, 
-	int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex,int BossX,int BossY,int *PlayerHitBoss)
+	int* D_TheGrid, int TheWidth, int TheHeight, int currentIndex,const int TheBossX,const int TheBossY,int *PlayerHitBoss)
 {
-	__shared__ int TheBossX;
-	TheBossX = BossX;
-	__shared__ int TheBossY;
-	TheBossY = BossY;
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx >= currentIndex)
 		return;
@@ -71,6 +63,7 @@ __global__ void UpdatePlayerBulletKernel(int* aspeedx, int* aspeedy, int* aNowX,
 		{
 			IfPlayerBulletValid[idx] = 0;
 			PlayerHitBoss[idx] = 1;
+			return;
 		}
 		if (D_TheGrid[aNowY[idx] * TheWidth + aNowX[idx]] == 1)
 			IfPlayerBulletValid[idx] = 0;
@@ -78,6 +71,10 @@ __global__ void UpdatePlayerBulletKernel(int* aspeedx, int* aspeedy, int* aNowX,
 }
 void PhyEngS::PrePrepare()
 {
+	DealBossqueue();
+	DealPlayerqueue();
+	DealBossBullet();
+	DealPlayerBullet();
 	for (auto& i : PlayerHitBoss)
 	{
 		i = 0;
@@ -102,12 +99,93 @@ void PhyEngS::AfterCollision()
 	abBoss->BossBeHitted();
 	abPlayer->PlayerBeHitted();
 }
-PhyEngS::PhyEngS(int aPlayerX, int aPlayerY, int aBossX, int aBossY)
-	:maxBossIndex(256), maxPlayerIndex(64), 
-	currentBossIndex(0), currentPlayerIndex(0), BossX(aBossX), BossY(aBossY), PlayerX(aPlayerX), PlayerY(aPlayerY)
+void PhyEngS::DealBossqueue()
+{
+	std::lock_guard<std::mutex> Themu(BossMessage);
+	if (!Bossqueue.empty())
+	{
+		auto Top = Bossqueue.front();
+		Bossqueue.pop();
+		TheScreenDraw->Draw(BossX, BossY, ' ');
+		BossX = Top[0];
+		BossY = Top[1];
+	}
+}
+void PhyEngS::DealPlayerqueue()
+{
+	std::lock_guard<std::mutex> Themu(PlayerMessage);
+	if(!Playerqueue.empty())
+	{
+		auto Top = Playerqueue.front();
+		Playerqueue.pop();
+		TheScreenDraw->Draw(PlayerX, PlayerY, ' ');
+		PlayerX = Top[0];
+		PlayerY = Top[1];
+	}
+}
+void PhyEngS::DealBossBullet()
+{
+	BossBulletMu.lock();
+	while(!BossBulletqueue.empty())
+	{
+		auto TheTop = BossBulletqueue.front();
+		BossBulletqueue.pop();
+		if (IfBossBulletValid[currentBossIndex] == 1)
+		{
+			currentBossIndex = (currentBossIndex + 1) % maxBossIndex;
+			BossBulletMu.unlock();
+			return;
+		}
+		NowX[currentBossIndex] = TheTop[0];
+		NowY[currentBossIndex] = TheTop[1];
+		speedx[currentBossIndex] = TheTop[2];
+		speedy[currentBossIndex] = TheTop[3];
+		IfBossBulletValid[currentBossIndex] = 1;
+		currentBossIndex = (currentBossIndex + 1)%maxBossIndex;
+	}
+	BossBulletMu.unlock();
+}
+void PhyEngS::DealPlayerBullet()
+{
+	PlayerBulletMu.lock();
+	if (PlayerAttackCount != 0)
+	{
+		PlayerAttackCount = (PlayerAttackCount + 1) %17;
+		if (!PlayerBulletqueue.empty())
+			PlayerBulletqueue.pop();
+		PlayerBulletMu.unlock();
+		return;
+	}
+    if(!PlayerBulletqueue.empty())
+	{
+		auto TheTop = PlayerBulletqueue.front();
+		PlayerBulletqueue.pop();
+		if (IfPlayerBulletValid[currentPlayerIndex] == 1) 
+		{
+			currentPlayerIndex = (currentPlayerIndex + 1) % maxPlayerIndex;
+			PlayerBulletMu.unlock();
+			return;
+		}
+		NowXPlayer[currentPlayerIndex] = TheTop[0];
+		NowYPlayer[currentPlayerIndex] = TheTop[1];
+		speedxPlayer[currentPlayerIndex] = TheTop[2];
+		speedyPlayer[currentPlayerIndex] = TheTop[3];
+		IfPlayerBulletValid[currentPlayerIndex] = 1;
+		currentPlayerIndex = (currentPlayerIndex + 1) % maxPlayerIndex;
+		++PlayerAttackCount;
+	}
+	PlayerBulletMu.unlock();
+}
+PhyEngS::PhyEngS()
+	:maxBossIndex(256), maxPlayerIndex(256), 
+	currentBossIndex(0), currentPlayerIndex(0)
 {
 	TheScreenDraw = std::make_shared<MyScreenDraw>();
 	TheTerr = std::make_shared<TerrS>(TheScreenDraw->GetWidth(), TheScreenDraw->GetHeight());
+	PlayerX = 0;
+	PlayerY = 6;
+	BossX = TheScreenDraw->GetWidth() - 1;
+	BossY = TheScreenDraw->GetHeight() - 7;
 	PlayerHitBoss.resize(maxPlayerIndex);
 	BossHitPlayer.resize(maxBossIndex);
 	speedx.resize(maxBossIndex);
@@ -142,7 +220,7 @@ PhyEngS::PhyEngS(int aPlayerX, int aPlayerY, int aBossX, int aBossY)
 		for(int j=0;j<Width;++j)
 		{
 			if (!TheTerr->IfCanMove(j, i))
-				TheScreenDraw->Draw(j, i, L'#', 0x0002);
+				TheScreenDraw->Draw(j, i, L'#', 0x0007);
 		}
 	}
 	cudaMalloc((void**)&D_TheGrid, Width * Height * sizeof(int));
@@ -190,6 +268,7 @@ PhyEngS::~PhyEngS()
 }
 void PhyEngS::UpDateBullet()
 {
+	Tosy->Wait();
 	PrePrepare();
 	cudaMemcpyAsync(D_speedx, speedx.data(), maxBossIndex * sizeof(int), cudaMemcpyHostToDevice, stream1);
 	cudaMemcpyAsync(D_speedxPlayer, speedxPlayer.data(), maxPlayerIndex * sizeof(int), cudaMemcpyHostToDevice, stream2);
@@ -205,9 +284,9 @@ void PhyEngS::UpDateBullet()
 	cudaMemcpyAsync(D_BossHitPlayer, BossHitPlayer.data(), maxPlayerIndex * sizeof(int), cudaMemcpyHostToDevice, stream2);
 	cudaStreamSynchronize(stream1);
 	cudaStreamSynchronize(stream2);
-	int bossBlockSize = 64;
+	int bossBlockSize =256;
 	int bossNumBlocks = (maxBossIndex + bossBlockSize - 1) / bossBlockSize;
-	int playerBlockSize = 64;
+	int playerBlockSize =256;
 	int playerNumBlocks = (maxPlayerIndex + playerBlockSize - 1) / playerBlockSize;
 	UpdateBulletKernel << <bossNumBlocks, bossBlockSize, 0, stream3 >> > (D_speedx, D_speedy, D_NowX, D_NowY, D_IfBossBulletValid,
 		D_TheGrid, TheTerr->GetWidth(), TheTerr->GetHeight(), maxBossIndex, PlayerX, PlayerY, D_BossHitPlayer,D_NowXPlayer,D_NowYPlayer,D_IfPlayerBulletValid,maxPlayerIndex);
@@ -230,25 +309,26 @@ void PhyEngS::UpDateBullet()
 	cudaStreamSynchronize(stream1);
 	cudaStreamSynchronize(stream2);
 	AfterCollision();
-	Tosy->Wait();
 	Draw();
 	TheScreenDraw->Render();
 }
 
 void PhyEngS::Draw()
 {
+	std::lock_guard<std::mutex> abs1(BossBulletMu);
+	std::lock_guard<std::mutex> abs2(PlayerBulletMu);
 	for (int i = 0; i < maxBossIndex; ++i)
 	{
 		if (IfBossBulletValid[i] == 1)
-			TheScreenDraw->Draw(NowX[i], NowY[i], '*');
+			TheScreenDraw->Draw(NowX[i], NowY[i], L'*',0x0004);
 	}
 	for (int i = 0; i < maxPlayerIndex; ++i)
 	{
 		if (IfPlayerBulletValid[i] == 1)
-			TheScreenDraw->Draw(NowXPlayer[i], NowYPlayer[i], 'o');
+			TheScreenDraw->Draw(NowXPlayer[i], NowYPlayer[i], 'o',0x0002);
 	}
-	TheScreenDraw->Draw(BossX, BossY, BossChar);
-	TheScreenDraw->Draw(PlayerX, PlayerY, PlayerChar);
+	TheScreenDraw->Draw(BossX, BossY, BossChar,BossColor);
+	TheScreenDraw->Draw(PlayerX, PlayerY, PlayerChar,PlayerColor);
 }
 int PhyEngS::GetPlayerBeHittedTime()
 {

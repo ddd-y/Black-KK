@@ -24,7 +24,7 @@ private:
 
         // 设置初始控制台参数
         UpdateConsoleSize();
-        SetConsoleTitle(L"Console Renderer");
+        SetConsoleTitle(L"黑框框小程序");
 
         // 隐藏光标
         CONSOLE_CURSOR_INFO cursorInfo;

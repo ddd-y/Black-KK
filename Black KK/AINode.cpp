@@ -34,12 +34,8 @@ void AINode::SetBarrier(std::shared_ptr<MyBarrier> abb)
 }
 void AINode::Execute()
 {
-	if (CurrentFrame % ControllGoal->GetSpeednow() == 0)
+	if (CurrentFrame % ControllGoal->GetSpeednow() == 1)
 		Trace();
-	else 
-	{
-		Tosy->Wait();
-	}
 	if (CurrentFrame % ControllGoal->GetAttackPing() == 1)
 	{
 		if (ControllGoal->IfSecond())
@@ -51,5 +47,14 @@ void AINode::Execute()
 			exeleft();
 		}
 	}
+	else 
+	{
+		Tosy->Wait();
+	}
 	PlusFrame();
+}
+
+int AINode::GetBossHealth()
+{
+	return ControllGoal->GetHealthNow();
 }

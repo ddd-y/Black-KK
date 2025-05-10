@@ -60,10 +60,12 @@ public:
 	void Skillfirst()
 	{
 		ThePhysis->BossSpawnFourwayBullet();
+		Tosy->Wait();
 	}
 	void Skillsecond()
 	{
 		ThePhysis->BossSpawnEightwayBullet();
+		Tosy->Wait();
 	}
 	bool IfNeedToFlash() {
 		std::srand(std::time(nullptr));
@@ -78,6 +80,7 @@ public:
 			currentFlash = SecondFlash;
 			Speednow = SpeedSecond;
 			AttackPing = AttackSecond;
+			ThePhysis->BossChangeSecond();
 			return true;
 		}
 		return false;
@@ -87,7 +90,7 @@ public:
 	Boss() = delete;
 	Boss(std::shared_ptr<physis> aphysis) :
 		ThePhysis(aphysis),maxhealth(100), health(100), attack(5), defense(1),
-		FirstFlash(10), SecondFlash(20), currentFlash(FirstFlash), SpeedFirst(3), SpeedSecond(2), AttackFirst(10), AttackSecond(5)
+		FirstFlash(0), SecondFlash(5), currentFlash(FirstFlash), SpeedFirst(15), SpeedSecond(8), AttackFirst(20), AttackSecond(15)
 	{
 		TheGrid = ThePhysis->GetTheGrid();
 		Speednow = SpeedFirst;
