@@ -6,6 +6,7 @@
 #include"PlayerController.h"
 #include<thread>
 #include"Boss.h"
+#include<iostream>
 void GameMode::SetBarrier()
 {
 	TheEngine->SetBarrier(Tosy);
@@ -14,18 +15,25 @@ void GameMode::SetBarrier()
 }
 void GameMode::GameIfOver()
 {
-	int PlayerHealthNow=ThePlayer->GetHealth();
+	int PlayerHealthNow = ThePlayer->GetHealth();
 	int BossHealthNow = TheNode->GetBossHealth();
-	if(BossHealthNow==0)
-	{
-		GameContinue = false;
-		IfWin = true;
-		return;
+	if (BossHealthNow == 0 || PlayerHealthNow == 0) {
+		GameContinue.store(false);       
+		Tosy->ReleaseAll();             
+		IfWin = (BossHealthNow == 0);    
 	}
-	if (PlayerHealthNow == 0)
+}
+void GameMode::GameOver()
+{
+	if (IfWin)
 	{
-		GameContinue = false;
-		IfWin = false;
+		std::wstring ssr = L"恭喜你获得胜利，作者微信号：cayyyds";
+		TheEngine->GameOver(ssr);
+	}
+	else
+	{
+		std::wstring ssr = L"真可惜，再试试吧，作者微信号：cayyyds";
+		TheEngine->GameOver(ssr);
 	}
 }
 GameMode::GameMode()
@@ -45,46 +53,42 @@ GameMode::GameMode()
 
 void GameMode::GameStart()
 {
+	TheEngine->GmaeRuleShow();
 	std::thread thread1([&] {
-		while (true) {
+		while (GameContinue.load()) {
 			TheNode->Execute();
-			GameIfOver();
-			if (!GameContinue)
-				break;
 		}
+		Tosy->Wait();
 		});
 	std::thread thread2([&] {
-		while (true) {
+		while (GameContinue.load()) {
 			TheEngine->UpDateBullet();
-			GameIfOver();
-			if (!GameContinue)
-				break;
 		}
+		Tosy->Wait();
 		});
 	std::thread thread3([&] {
-		while (true) {
+		while (GameContinue.load()) {
 			MyPlayerController->GameIng();
-			GameIfOver();
-			if (!GameContinue)
-				break;
 		}
+		Tosy->Wait();
 		});
 	std::thread thread4([&] {
-		while (true) {
-			Sleep(8);
+		while (GameContinue.load()) {
+			Sleep(7);
 			Tosy->Wait();
-			GameIfOver();
-			if (!GameContinue)
-				break;
 		}
-		});
-	while (true)
-	{
 		Tosy->Wait();
+		});
+	while (GameContinue.load())
+	{
 		GameIfOver();
-		if (!GameContinue)
-			break;
+		Tosy->Wait();
 	}
+	GameOver();
+	thread1.join();
+	thread2.join();
+	thread3.join();
+	thread4.join();
 }
 int main()
 {

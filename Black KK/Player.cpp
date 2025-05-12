@@ -48,5 +48,8 @@ void Player::PlayerBeHitted()
 		ChangeHealth(hurt);
 	}
 	if (health * 2 <= maxhealth)
+	{
 		currentColor = 0x0001;
+		ThePhysis->ChangePlayerWay(CurrentChar, currentColor);
+	}
 }

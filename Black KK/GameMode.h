@@ -1,5 +1,6 @@
 #pragma once
 #include<memory>
+#include<atomic>
 class PhyEngS;
 class AINode;
 class Player;
@@ -13,10 +14,11 @@ private:
 	std::shared_ptr<Player> ThePlayer;
 	std::shared_ptr<PlayerController> MyPlayerController;
 	std::shared_ptr<MyBarrier> Tosy;
-	bool GameContinue = true;//游戏是否继续
+	std::atomic<bool> GameContinue{ true };
 	bool IfWin = false;//true表示赢了，flase表示输了
 	void SetBarrier();
 	void GameIfOver();
+	void GameOver();
 public:
 	GameMode();
 	~GameMode(){}

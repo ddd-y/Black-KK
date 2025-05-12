@@ -2,6 +2,7 @@
 #include<memory>
 #include<unordered_map>
 #include<windows.h>
+#include<queue>
 #include"MyBarrier.h"
 #include"Player.h"
 enum class PlayerAction {
@@ -25,6 +26,7 @@ public:
     void GameIng();
     void SetBarrier(std::shared_ptr<MyBarrier> abb) { Tosy = abb; }
 private:
+    std::queue<PlayerAction> MessageQue;
     std::shared_ptr<Player> ControllGoal;
     std::shared_ptr<MyBarrier> Tosy;
     int FrameCount;

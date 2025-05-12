@@ -10,7 +10,7 @@ class Boss
 private:
 	std::shared_ptr<std::vector<std::vector<int>>> TheGrid;
 	std::shared_ptr<physis> ThePhysis;//物理实体
-	std::shared_ptr<MyBarrier> Tosy;
+	std::array<int, 2> NextStep;
 	int maxhealth;//最大生命值
 	int health;//生命值
 	int attack;//攻击力
@@ -24,6 +24,7 @@ private:
 	int AttackPing;//攻击频率
 	int AttackFirst;//第一阶段攻击频率
 	int AttackSecond;//第二阶段攻击频率
+	bool HaveNextStep;//有下一步
 	void ChangeHealth(int Change);
 	bool ChangeLocation(int TheNewX, int TheNewY)//闪现，用于Boss的技能，该点是否能降落由其他来判断
 	{
@@ -40,10 +41,6 @@ private:
 		return ThePhysis->GetBossY();
 	}
 public:
-	void SetBarrier(std::shared_ptr<MyBarrier> abb) 
-	{
-		Tosy = abb;
-	}
 	int GetHealthNow()
 	{
 		return health;
@@ -60,12 +57,10 @@ public:
 	void Skillfirst()
 	{
 		ThePhysis->BossSpawnFourwayBullet();
-		Tosy->Wait();
 	}
 	void Skillsecond()
 	{
 		ThePhysis->BossSpawnEightwayBullet();
-		Tosy->Wait();
 	}
 	bool IfNeedToFlash() {
 		std::srand(std::time(nullptr));
@@ -85,17 +80,20 @@ public:
 		}
 		return false;
 	}
+	bool IfTrace();//是否在追击范围内
 	void Flash();//闪现
 	void BossBeHitted();//被子弹打到时的反应
 	Boss() = delete;
 	Boss(std::shared_ptr<physis> aphysis) :
 		ThePhysis(aphysis),maxhealth(100), health(100), attack(5), defense(1),
-		FirstFlash(0), SecondFlash(5), currentFlash(FirstFlash), SpeedFirst(15), SpeedSecond(8), AttackFirst(20), AttackSecond(15)
+		FirstFlash(0), SecondFlash(5), currentFlash(FirstFlash), SpeedFirst(15), SpeedSecond(8), AttackFirst(20), AttackSecond(15),HaveNextStep(false)
 	{
 		TheGrid = ThePhysis->GetTheGrid();
 		Speednow = SpeedFirst;
 		AttackPing = AttackFirst;
 		ThePhysis->ChangeBossAttack(attack);
+		auto aNode = std::make_shared<TheNode>();
+		aNode->PreprocessJPSPlus(*TheGrid);
 	}
 	~Boss();
 };

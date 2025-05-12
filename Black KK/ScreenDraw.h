@@ -2,14 +2,13 @@
 #include <windows.h>
 #include <vector>
 #include <memory>
+#include<string>
 #include <algorithm>
-#include<mutex>
 class MyScreenDraw 
 {
 private:
     HANDLE m_hFrontBuffer;
     HANDLE m_hBackBuffer;
-    std::mutex TheMutex;
     int m_nCols;
     int m_nRows;
     std::unique_ptr<CHAR_INFO[]> m_pScreenBuffer;
@@ -118,5 +117,6 @@ public:
 
     int GetWidth() const { return m_nCols; }
     int GetHeight() const { return m_nRows; }
+    void DrawString(int x, int y, const std::wstring& text, WORD attrib = 0x000F);
 };
 

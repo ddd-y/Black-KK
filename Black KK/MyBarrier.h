@@ -10,8 +10,8 @@ public:
         CurrentCount(count),
         generation_(0) {
     }
-
     void Wait();
+    void ReleaseAll();//释放所有线程
 private:
     std::mutex aMutex;
     std::condition_variable C_V;

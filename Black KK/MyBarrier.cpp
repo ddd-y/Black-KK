@@ -3,16 +3,23 @@
 void MyBarrier::Wait()
 {
     std::unique_lock<std::mutex> lock(aMutex);
-    int gen = generation_;  // 记录当前屏障的“代数”
+    int gen = generation_;  
     if (--CurrentCount== 0) {
         generation_ = (generation_ + 1) % 4096;          
         CurrentCount = ThreShold;
         C_V.notify_all();
     }
     else {
-        // 非最后一个线程，等待条件变量
         C_V.wait(lock, [this, gen] {
             return gen != generation_;
             });
     }
+}
+
+void MyBarrier::ReleaseAll()
+{
+    std::unique_lock<std::mutex> lock(aMutex);
+    generation_ = (generation_ + 1) % 4096; 
+    CurrentCount = ThreShold;               
+    C_V.notify_all();                        
 }

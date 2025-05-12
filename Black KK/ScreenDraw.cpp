@@ -18,3 +18,14 @@ MyScreenDraw::MyScreenDraw()
     ConfigureConsole();
     SetConsoleActiveScreenBuffer(m_hFrontBuffer);
 }
+
+void MyScreenDraw::DrawString(int x, int y, const std::wstring& text, WORD attrib)
+{
+    for (size_t i = 0; i < text.size(); ++i) 
+    {
+        int currentX = x + static_cast<int>(i);
+        if (currentX >= 0 && currentX < m_nCols && y >= 0 && y < m_nRows) {
+            Draw(currentX, y, text[i], attrib);
+        }
+    }
+}

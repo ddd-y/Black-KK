@@ -20,28 +20,42 @@ PlayerController::PlayerController():FrameCount(0)
 
 void PlayerController::GameIng()
 {
-        auto NowAction = Update();
-        switch (NowAction)
-        {
-        case PlayerAction::MoveLeft:
-            ControllGoal->MoveLeft();
-            break;
-        case PlayerAction::MoveRight:
-            ControllGoal->MoveRight();
-            break;
-        case PlayerAction::MoveUp:
-            ControllGoal->MoveUp();
-            break;
-        case PlayerAction::MoveDown:
-            ControllGoal->MoveDown();
-            break;
-        case PlayerAction::Attack:
-            ControllGoal->PlayerAttack();
-            break;
-        case PlayerAction::None:
-            break;
-        default:
-            break;
-        }
+     auto NowAction = Update();
+     if (MessageQue.size() < 5)
+     {
+         if(NowAction!=PlayerAction::None)
+         MessageQue.push(NowAction);
+     }
+     if (FrameCount % 3 == 1)
+     {
+         if (!MessageQue.empty())
+         {
+             auto TheTop = MessageQue.front();
+             MessageQue.pop();
+             switch (TheTop)
+             {
+             case PlayerAction::MoveLeft:
+                 ControllGoal->MoveLeft();
+                 break;
+             case PlayerAction::MoveRight:
+                 ControllGoal->MoveRight();
+                 break;
+             case PlayerAction::MoveUp:
+                 ControllGoal->MoveUp();
+                 break;
+             case PlayerAction::MoveDown:
+                 ControllGoal->MoveDown();
+                 break;
+             case PlayerAction::Attack:
+                 ControllGoal->PlayerAttack();
+                 break;
+             case PlayerAction::None:
+                 break;
+             default:
+                 break;
+             }
+         }
+     }
+     FrameCount = (FrameCount + 1) % 3;
     Tosy->Wait();
 }

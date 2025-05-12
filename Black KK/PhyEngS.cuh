@@ -46,13 +46,14 @@ class PhyEngS
 	std::mutex PlayerMessage;
 	int currentBossIndex;
 	int currentPlayerIndex;
-	int maxBossIndex;
-	int maxPlayerIndex;
+	const int maxBossIndex;
+	const int maxPlayerIndex;
 	int PlayerX, PlayerY;
 	int BossX, BossY;
 	int BossAttack=0;
 	int PlayerAttack = 0;
 	int PlayerAttackCount = 0;
+	int DealPlayerCount = 0;
 	cudaStream_t stream1, stream2, stream3;
 	char BossChar ='b';
 	int BossColor = 0x7;
@@ -69,6 +70,9 @@ class PhyEngS
 	void DealBossBullet();
 	void DealPlayerBullet();
 public:
+	void DrawTerrS();
+	void GmaeRuleShow();
+	void GameOver(std::wstring& overstring);
 	void SetBossCharAndColor(char cc,int bbs)
 	{
 		BossChar = cc;
@@ -80,10 +84,24 @@ public:
 		PlayerColor = bbs;
 	}
 	void SetBarrier(std::shared_ptr<MyBarrier> &abb) { Tosy = abb; }
-	int GetPlayerX() { return PlayerX; }
-	int GetPlayerY() { return PlayerY; }
-	int GetBossX() { return BossX; }
-	int GetBossY() { return BossY; }
+	int GetPlayerX() 
+	{
+		std::lock_guard<std::mutex> abs(PlayerMessage);
+		return PlayerX; 
+	}
+	int GetPlayerY() 
+	{
+		std::lock_guard<std::mutex> abs(PlayerMessage);
+		return PlayerY; 
+	}
+	int GetBossX() 
+	{
+		return BossX; 
+	}
+	int GetBossY() 
+	{ 
+		return BossY; 
+	}
 	int GetBossAttack() { return BossAttack; }
 	int GetPlayerAttack(){ return PlayerAttack;}
 	void ChangeBossAttack(int thenew) { BossAttack = thenew; }
@@ -92,21 +110,17 @@ public:
 	std::mutex* GetPlayerBulletMu() { return &PlayerBulletMu; }
 	bool WantToChangeBossLocation(int aBossX, int aBossY)//false表示不可以移动
 	{
-		std::lock_guard<std::mutex> Themu(BossMessage);
 		if (!TheTerr->IfCanMove(aBossX, aBossY))
 			return false;
-		if (aBossX == PlayerX && aBossY == PlayerY)
-			return false;
+		std::lock_guard<std::mutex> Themu(BossMessage);
 		Bossqueue.push({ aBossX,aBossY });
 		return true;
 	}
 	void WantToChangePlayerLocation(int aPlayerX, int aPlayerY)
 	{
-		std::lock_guard<std::mutex> Themu(PlayerMessage);
 		if (!TheTerr->IfCanMove(aPlayerX, aPlayerY))
 			return;
-		if (aPlayerX == BossX && aPlayerY == BossY)
-			return;
+		std::lock_guard<std::mutex> Themu(PlayerMessage);
 		if (Playerqueue.size() > 3)
 			return;
 		Playerqueue.push({ aPlayerX,aPlayerY });
@@ -126,10 +140,6 @@ public:
 	void UpDateBullet();
 	void Draw();
 	std::shared_ptr<std::vector<std::vector<int>>> GetGrid() { return TheTerr->GetGrid(); }
-	void UseRender()
-	{
-		TheScreenDraw->Render();
-	}
 	int GetPlayerBeHittedTime();
 	int GetBossBeHittedTime();
 };

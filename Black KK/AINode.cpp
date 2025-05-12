@@ -14,12 +14,15 @@ void AINode::exeright()
 
 void AINode::Trace()
 {
-	if(ControllGoal->IfNeedToFlash())
+	if (ControllGoal->IfTrace())
 	{
-		ControllGoal->Flash();
-		return;
+		if (ControllGoal->IfNeedToFlash())
+		{
+			ControllGoal->Flash();
+			return;
+		}
+		ControllGoal->GetNextStep();
 	}
-	ControllGoal->GetNextStep();
 }
 
 AINode::AINode(std::shared_ptr<Boss> TheControllGoal) :ControllGoal(TheControllGoal),CurrentFrame(0)
@@ -30,7 +33,6 @@ AINode::AINode(std::shared_ptr<Boss> TheControllGoal) :ControllGoal(TheControllG
 void AINode::SetBarrier(std::shared_ptr<MyBarrier> abb)
 {
 	Tosy = abb;
-	ControllGoal->SetBarrier(Tosy);
 }
 void AINode::Execute()
 {
@@ -41,10 +43,12 @@ void AINode::Execute()
 		if (ControllGoal->IfSecond())
 		{
 			exeright();
+			Tosy->Wait();
 		}
 		else
 		{
 			exeleft();
+			Tosy->Wait();
 		}
 	}
 	else 
